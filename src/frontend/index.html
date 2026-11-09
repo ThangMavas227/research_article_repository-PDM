@@ -24,7 +24,7 @@
         <p>Explore academic research articles.</p>
 
         <!-- Search Form -->
-        <form role="search">
+        <form id="browse-filter-form" role="search">
             <label for="keyword">
                 Search articles
             </label>
@@ -45,20 +45,30 @@
         <section aria-labelledby="results-title">
             <h3 id="results-title">Articles</h3>
 
-            <article>
-                <h4>Machine Learning in Healthcare</h4>
-                <p>Authors: Nguyen Van A, Tran Thi B</p>
-                <p>Publication Year: 2024</p>
-            </article>
+            <p id="count-pill"></p>
+            <p id="page-label"></p>
 
-            <article>
-                <h4>Database Management Systems</h4>
-                <p>Author: Le Van C</p>
-                <p>Publication Year: 2023</p>
-            </article>
+            <!-- Loading / Empty / Error -->
+            <div id="status-region"
+                role="status"
+                aria-live="polite"></div>
+
+            <!-- Article list -->
+            <div id="article-list"></div>
+
+            <!-- Pagination -->
+            <div id="pagination" hidden>
+                <button type="button" id="prev-btn">Previous</button>
+
+                <span id="page-info"></span>
+
+                <button type="button" id="next-btn">Next</button>
+            </div>
         </section>
     </section>
 </main>
 <script src="search.js"></script>
+<script src="mockData.js"></script>
+<script src="browse.js"></script>
 </body>
 </html>

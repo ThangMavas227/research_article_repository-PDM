@@ -6,23 +6,58 @@
  * @param {string} keyword - Search keyword.
  * @returns {Array} Matching articles.
  */
-function searchArticles(articles, keyword) {
-    const query = keyword.trim().toLowerCase();
+// function searchArticles(articles, keyword) {
+//     const query = keyword.trim().toLowerCase();
 
-    if (query === "") {
+//     if (query === "") {
+//         return articles;
+//     }
+
+//     return articles.filter(article => {
+//         const title = article.title.toLowerCase();
+//         const authors = article.authors
+//             .join(" ")
+//             .toLowerCase();
+
+//         return title.includes(query)
+//             || authors.includes(query);
+//     });
+// }
+
+
+function normalizeText(text) {
+    return String(text ?? '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'D')
+        .toLowerCase()
+        .trim();
+}
+
+function searchArticles(articles, keyword) {
+    const query = normalizeText(keyword);
+
+    if (query === '') {
         return articles;
     }
 
     return articles.filter(article => {
-        const title = article.title.toLowerCase();
+        const title = normalizeText(article.title);
+
         const authors = article.authors
-            .join(" ")
-            .toLowerCase();
+            .map(author =>
+                typeof author === 'string'
+                    ? author
+                    : author.name
+            )
+            .join(' ');
 
         return title.includes(query)
-            || authors.includes(query);
+            || normalizeText(authors).includes(query);
     });
 }
+
 
 const testArticles = [
     {

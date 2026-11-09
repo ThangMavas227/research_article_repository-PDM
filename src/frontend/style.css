@@ -121,3 +121,107 @@ article p {
         width: 100%;
     }
 }
+
+/* Card của từng bài báo */
+.article-row {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 16px 0;
+}
+
+/* Tiêu đề bài báo */
+.article-title {
+    margin: 0 0 12px;
+    color: #1d4ed8;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* Khu vực thông tin bài báo */
+.article-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: #4b5563;
+}
+
+/* Nhãn Authors và Published */
+.meta-name {
+    font-weight: bold;
+    margin-right: 6px;
+}
+
+/* Giá trị năm xuất bản */
+.meta-year {
+    color: #2563eb;
+    font-weight: 500;
+}
+
+/* Pagination */
+#pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin: 24px 0;
+}
+
+#pagination[hidden] {
+    display: none;
+}
+
+#pagination button,
+.retry-btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    background: #2563eb;
+    color: white;
+    cursor: pointer;
+}
+
+#pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Empty / Error State */
+.state-box {
+    padding: 32px 20px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.state-title {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Loading State */
+.skeleton {
+    padding: 20px;
+    margin: 16px 0;
+    background: white;
+    border-radius: 10px;
+}
+
+.shimmer {
+    height: 15px;
+    margin: 12px 0;
+    border-radius: 5px;
+    background: #e5e7eb;
+    animation: pulse 1.2s infinite alternate;
+}
+
+.shimmer.wide { width: 85%; }
+.shimmer.short { width: 55%; }
+.shimmer.year { width: 25%; }
+
+@keyframes pulse {
+    to { opacity: 0.35; }
+}
+
