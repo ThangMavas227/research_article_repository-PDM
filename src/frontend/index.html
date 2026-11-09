@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Research Article Repository</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h1>Research Article Repository</h1>
+    <nav aria-label="Main navigation">
+        <a href="#browse">Browse Articles</a>
+    </nav>
+</header>
+
+<main>
+    <section id="browse">
+        <h2>Browse Research Articles</h2>
+        <p>Explore academic research articles.</p>
+
+        <!-- Search Form -->
+        <form role="search">
+            <label for="keyword">
+                Search articles
+            </label>
+
+            <input
+                    type="search"
+                    id="keyword"
+                    name="keyword"
+                    placeholder="Enter article title or keyword"
+            >
+
+            <button type="submit">
+                Search
+            </button>
+        </form>
+
+        <!-- Article Results -->
+        <section aria-labelledby="results-title">
+            <h3 id="results-title">Articles</h3>
+
+            <article>
+                <h4>Machine Learning in Healthcare</h4>
+                <p>Authors: Nguyen Van A, Tran Thi B</p>
+                <p>Publication Year: 2024</p>
+            </article>
+
+            <article>
+                <h4>Database Management Systems</h4>
+                <p>Author: Le Van C</p>
+                <p>Publication Year: 2023</p>
+            </article>
+        </section>
+    </section>
+</main>
+
+</body>
+</html>
