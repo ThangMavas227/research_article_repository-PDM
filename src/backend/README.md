@@ -15,36 +15,38 @@ Run `db/script.sql` once in MySQL Workbench (File > Open SQL Script > Run). It d
 ```powershell
 cd src\backend
 $env:DB_PASSWORD = 'your-mysql-password'
-.\mvnw.cmd spring-boot:run "-Dspring-boot.run.arguments=--server.port=8081"
+.\mvnw.cmd spring-boot:run
 ```
+The API listens on `http://localhost:8080` (same as the frontend's `API_URL`).
 Optional environment variables: `DB_USER` (default `root`), `DB_URL`
-(default `jdbc:mysql://localhost:3306/research_repo`). The password is never stored in the code.
+(default `jdbc:mysql://localhost:3306/research_repo`), `PORT` (default `8080`).
+The password is never stored in the code.
 
-Wait for `Started ResearchRepoApiApplication`. The API is then at `http://localhost:8081`.
-The first run downloads dependencies and can take a few minutes.
+Wait for `Started ResearchRepoApiApplication`. The first run downloads dependencies and can take a few minutes.
 
 ## Endpoints
 ### `GET /api/articles` (public, no login)
 | Query param | Meaning | Default |
 |---|---|---|
-| `q` | text to search in the title | none |
+| `keyword` | text matched against the title **or** any author's name (ignores case and accents) | none |
 | `year` | publication year filter | none |
 | `page` | page number, starting at 1 | 1 |
 | `size` | items per page (1–100) | 10 |
 
-Example: `/api/articles?q=data&year=2019&page=1&size=10`
+Example: `/api/articles?keyword=data&year=2019&page=1&size=8`
 
 ```json
 {
-  "data": [
-    { "articleId": "AR005", "title": "Deep Residual Models for Medical Image Classification",
-      "authors": ["Le Hoang Cuong", "Pham Minh Duc", "Tran Thi Binh"], "publicationYear": 2020 }
+  "items": [
+    { "id": "AR005", "title": "Deep Residual Models for Medical Image Classification", "year": 2020,
+      "authors": [ { "id": "AU003", "name": "Le Hoang Cuong" }, { "id": "AU004", "name": "Pham Minh Duc" } ] }
   ],
-  "pagination": { "page": 1, "size": 3, "totalItems": 24, "totalPages": 8 }
+  "page": 1, "size": 8, "totalItems": 24, "totalPages": 3
 }
 ```
 
-- No match: HTTP 200 with `"data": []` and `totalItems: 0`.
+- `year` comes from `Edition.PubYear`; `authors` are ordered by `Writes.Position`.
+- No match: HTTP 200 with `"items": []` and `totalItems: 0`.
 - Invalid parameter (`page=0`, `size=1000`, `year=abc`): HTTP 400 with `{"error": "..."}`.
 - Server error: HTTP 500 with `{"error": "internal server error"}`.
 - CORS is enabled for `http://localhost:*` so a frontend on another local port can call it.
