@@ -225,3 +225,26 @@ article p {
     to { opacity: 0.35; }
 }
 
+
+/* Article Detail - Back Button */
+.back-btn {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.back-btn:hover {
+    text-decoration: underline;
+}
+
+/* Article Title Link */
+.article-title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.article-title a:hover {
+    text-decoration: underline;
+}
+
