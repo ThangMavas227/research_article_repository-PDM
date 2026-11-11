@@ -6,10 +6,11 @@
 
 const CONFIG = {
     USE_API: false,
-    API_URL: 'http://localhost:8080/api/articles',
-    PAGE_SIZE: 8,
+    API_URL: 'http://localhost:8081/api/articles',
+    PAGE_SIZE: 10,
     MOCK_DELAY_MS: 700
 };
+
 
 const state = { page: 1, scenario: 'normal', requestId: 0, keyword: '' };
 
@@ -23,22 +24,33 @@ function delay(ms) {
 }
 
 // Normalize article data
+
 function normalizeArticle(raw) {
-    if (!raw || typeof raw.id !== 'string' || typeof raw.title !== 'string') {
-        throw new Error('Invalid API response: article requires string id and title.');
+    if (!raw ||
+        typeof raw.articleId !== 'string' ||
+        typeof raw.title !== 'string') {
+        throw new Error('Invalid article ID or title.');
     }
 
-    const year = Number(raw.year ?? raw.publicationYear);
-    if (!Number.isInteger(year) || year < 1900 || year > 2100) {
-        throw new Error('Invalid API response: missing/invalid publication year.');
+    const year = raw.publicationYear;
+
+    if (!Number.isInteger(year)) {
+        throw new Error('Invalid publication year.');
     }
 
-    if (!Array.isArray(raw.authors) || raw.authors.some(a => !a || typeof a.name !== 'string')) {
-        throw new Error('Invalid API response: authors must be an array with a name field.');
+    if (!Array.isArray(raw.authors) ||
+        raw.authors.some(a => typeof a !== 'string')) {
+        throw new Error('Invalid authors format.');
     }
 
-    return { id: raw.id, title: raw.title, year, authors: raw.authors };
+    return {
+        id: raw.articleId,
+        title: raw.title,
+        year: year,
+        authors: raw.authors.map(name => ({ name }))
+    };
 }
+
 
 // Search articles by keyword
 function searchArticles(articles, keyword) {
@@ -55,59 +67,84 @@ function searchArticles(articles, keyword) {
 
 // Get articles from Mock Data or Backend API
 async function getArticles(page) {
+
+    // TEST MOCK DATA
     if (!CONFIG.USE_API) {
         await delay(CONFIG.MOCK_DELAY_MS);
 
         if (state.scenario === 'error') {
-            throw new Error('Simulated network error for UI testing.');
+            throw new Error('Simulated network error.');
         }
 
         if (!Array.isArray(window.MOCK_ARTICLES)) {
-            throw new Error('Data is not loaded.');
+            throw new Error('Mock data is not loaded.');
         }
 
         const source = state.scenario === 'empty'
             ? []
             : searchArticles(window.MOCK_ARTICLES, state.keyword);
 
-        const items = source.slice((page - 1) * CONFIG.PAGE_SIZE, page * CONFIG.PAGE_SIZE);
+        const start = (page - 1) * CONFIG.PAGE_SIZE;
+        const items = source.slice(start, start + CONFIG.PAGE_SIZE);
 
         return {
-            items: items.map(normalizeArticle),
-            page,
+            items: items,
+            page: page,
             totalItems: source.length,
             totalPages: Math.ceil(source.length / CONFIG.PAGE_SIZE)
         };
     }
 
-    // GET /api/articles?page=1&size=8
+    // REAL BACKEND API
     const url = new URL(CONFIG.API_URL);
+
     url.searchParams.set('page', String(page));
     url.searchParams.set('size', String(CONFIG.PAGE_SIZE));
-    if (state.keyword) url.searchParams.set('keyword', state.keyword);
+
+    // Search by article title
+    if (state.keyword) {
+        url.searchParams.set('q', state.keyword);
+    }
 
     const response = await fetch(url.toString(), {
-        headers: { Accept: 'application/json' }
+        headers: {
+            Accept: 'application/json'
+        }
     });
 
+    // Handle HTTP 400 / 500
     if (!response.ok) {
-        throw new Error(`HTTP ${response.status} — unable to load articles.`);
+        let message = `HTTP ${response.status}`;
+
+        try {
+            const errorData = await response.json();
+            message = errorData.error || message;
+        } catch (e) {
+            // Keep HTTP status if error body is invalid
+        }
+
+        throw new Error(message);
     }
 
     const data = await response.json();
 
-    if (!data || !Array.isArray(data.items) ||
-        !Number.isInteger(data.totalItems) || !Number.isInteger(data.totalPages)) {
-        throw new Error('Invalid API response: expected items[], totalItems, totalPages.');
+    // Validate API response
+    if (!data ||
+        !Array.isArray(data.data) ||
+        !data.pagination ||
+        !Number.isInteger(data.pagination.totalItems) ||
+        !Number.isInteger(data.pagination.totalPages)) {
+        throw new Error('Invalid API response format.');
     }
 
     return {
-        items: data.items.map(normalizeArticle),
-        page,
-        totalItems: data.totalItems,
-        totalPages: data.totalPages
+        items: data.data.map(normalizeArticle),
+        page: data.pagination.page,
+        totalItems: data.pagination.totalItems,
+        totalPages: data.pagination.totalPages
     };
 }
+
 
 // Display Loading Skeleton
 function showLoading() {

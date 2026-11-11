@@ -6,24 +6,6 @@
  * @param {string} keyword - Search keyword.
  * @returns {Array} Matching articles.
  */
-// function searchArticles(articles, keyword) {
-//     const query = keyword.trim().toLowerCase();
-
-//     if (query === "") {
-//         return articles;
-//     }
-
-//     return articles.filter(article => {
-//         const title = article.title.toLowerCase();
-//         const authors = article.authors
-//             .join(" ")
-//             .toLowerCase();
-
-//         return title.includes(query)
-//             || authors.includes(query);
-//     });
-// }
-
 
 function normalizeText(text) {
     return String(text ?? '')
@@ -35,6 +17,7 @@ function normalizeText(text) {
         .trim();
 }
 
+
 function searchArticles(articles, keyword) {
     const query = normalizeText(keyword);
 
@@ -44,19 +27,10 @@ function searchArticles(articles, keyword) {
 
     return articles.filter(article => {
         const title = normalizeText(article.title);
-
-        const authors = article.authors
-            .map(author =>
-                typeof author === 'string'
-                    ? author
-                    : author.name
-            )
-            .join(' ');
-
-        return title.includes(query)
-            || normalizeText(authors).includes(query);
+        return title.includes(query);
     });
 }
+
 
 
 const testArticles = [
