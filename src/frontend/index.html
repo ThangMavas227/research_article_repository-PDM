@@ -8,6 +8,8 @@
 
     <title>Research Article Repository</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Load before the page so localhost origin correction happens first. -->
+    <script src="config.js"></script>
 </head>
 
 <body>
@@ -41,6 +43,23 @@
             </button>
         </form>
 
+        <!-- The API is the default; mock mode is available for offline demos. -->
+        <div class="data-controls">
+            <label for="data-mode">Data source:</label>
+            <select id="data-mode">
+                <option value="api">Backend API</option>
+                <option value="mock">Mock demo</option>
+            </select>
+            <label for="mock-scenario" id="mock-scenario-label" hidden>
+                Mock state:
+                <select id="mock-scenario">
+                    <option value="normal">Normal</option>
+                    <option value="empty">Empty</option>
+                    <option value="error">Error</option>
+                </select>
+            </label>
+        </div>
+
         <!-- Article Results -->
         <section aria-labelledby="results-title">
             <h3 id="results-title">Articles</h3>
@@ -67,6 +86,7 @@
         </section>
     </section>
 </main>
+
 <script src="search.js"></script>
 <script src="mockData.js"></script>
 <script src="browse.js"></script>
