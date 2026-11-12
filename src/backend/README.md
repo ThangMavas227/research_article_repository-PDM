@@ -9,7 +9,7 @@ Spring Boot (Java) REST API over the MySQL database in `/db`.
 
 ## 1. Create the database
 Run `db/script.sql` once in MySQL Workbench (File > Open SQL Script > Run). It drops and recreates the
-`research_repo` schema and loads the sample data (24 articles). Running it again resets the data.
+`research_repo` schema and loads the sample data (25 real articles from OpenAlex plus synthetic users and lists). Running it again resets the data.
 
 ## 2. Run the API (PowerShell)
 ```powershell
