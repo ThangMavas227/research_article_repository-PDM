@@ -1,35 +1,26 @@
 /*
- * Live Server sometimes opens pages at 127.0.0.1:5500, while the team backend
- * only allows CORS origins matching http://localhost:*.  These names refer to
- * the same computer but are DIFFERENT browser origins.
- *
- * Move the frontend tab to localhost, keeping its port/path/query/hash.
- * This does not change the backend URL or disable CORS security.
+ * Frontend integration settings for GET /api/articles.
+ * Keep USE_API = false until your local Spring Boot + MySQL are ready.
+ * Set it to true to start in API mode, or switch modes on the Browse page.
+ * The backend's CorsConfig allows both localhost and 127.0.0.1 origins.
  */
-if (window.location.protocol === 'http:' &&
-    window.location.hostname === '127.0.0.1' &&
-    window.location.port && window.location.port !== '8080') {
-    const localhostUrl = new URL(window.location.href);
-    localhostUrl.hostname = 'localhost';
-    window.location.replace(localhostUrl.href);
-}
-
-/* Shared frontend settings. The supplied backend runs on port 8080 by default. */
 window.APP_CONFIG = Object.freeze({
     API_URL: 'http://localhost:8080/api/articles',
-    PAGE_SIZE: 10,
+    USE_API: false,
+    PAGE_SIZE: 10,            // Backend accepts size from 1 to 100.
     MOCK_DELAY_MS: 600,
-    DEFAULT_MODE: 'api',
-    MODE_STORAGE_KEY: 'research-repo-data-mode',
+    // New key avoids a saved API preference from an older build overriding USE_API=false.
+    MODE_STORAGE_KEY: 'research-repo-data-mode-v3',
     SELECTED_ARTICLE_KEY: 'research-repo-selected-article'
 });
 
 window.getArticleMode = function () {
+    const defaultMode = window.APP_CONFIG.USE_API ? 'api' : 'mock';
     try {
         const mode = sessionStorage.getItem(window.APP_CONFIG.MODE_STORAGE_KEY);
-        return mode === 'mock' || mode === 'api' ? mode : window.APP_CONFIG.DEFAULT_MODE;
+        return mode === 'mock' || mode === 'api' ? mode : defaultMode;
     } catch (_) {
-        return window.APP_CONFIG.DEFAULT_MODE;
+        return defaultMode;
     }
 };
 
@@ -39,6 +30,6 @@ window.setArticleMode = function (mode) {
         sessionStorage.setItem(window.APP_CONFIG.MODE_STORAGE_KEY, mode);
         sessionStorage.removeItem(window.APP_CONFIG.SELECTED_ARTICLE_KEY);
     } catch (_) {
-        // The app still works when browser storage is disabled on the Browse page.
+        // Browse keeps working even when sessionStorage is unavailable.
     }
 };

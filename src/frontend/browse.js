@@ -1,10 +1,11 @@
-/* Browse/Search: the real backend is the default data source.
- * Mock mode implements the SAME response contract for offline demos.
+/* Browse/Search: matches GET /api/articles?keyword=&year=&page=1&size=10.
+ * Use the real backend only when selected. Mock mode follows the same response contract.
  */
 const CONFIG = window.APP_CONFIG;
 const state = {
     page: 1,
     keyword: '',
+    year: null,
     mode: window.getArticleMode(),
     scenario: 'normal', // mock-only: normal, empty, error
     requestId: 0,
@@ -44,18 +45,20 @@ function normalizeResponse(data) {
         !Number.isInteger(data.size) || data.size < 1 ||
         !Number.isInteger(data.totalItems) || data.totalItems < 0 ||
         !Number.isInteger(data.totalPages) || data.totalPages < 0 ||
-        data.items.length > data.size) {
+        data.items.length > data.size ||
+        data.totalPages !== Math.ceil(data.totalItems / data.size)) {
         throw new Error('Invalid API response format. Expected items, page, size, totalItems and totalPages.');
     }
     return { ...data, items: data.items.map(normalizeArticle) };
 }
 
-async function getArticles({ page, keyword, mode, scenario, signal }) {
+async function getArticles({ page, keyword, year, mode, scenario, signal }) {
     if (mode === 'mock') {
         await delay(CONFIG.MOCK_DELAY_MS);
         if (scenario === 'error') throw new Error('Simulated network error (mock mode).');
         if (!Array.isArray(window.MOCK_ARTICLES)) throw new Error('Mock data is not loaded.');
-        const source = scenario === 'empty' ? [] : searchArticles(window.MOCK_ARTICLES, keyword);
+        const matched = searchArticles(window.MOCK_ARTICLES, keyword);
+        const source = scenario === 'empty' ? [] : matched.filter(article => year === null || article.year === year);
         const start = (page - 1) * CONFIG.PAGE_SIZE;
         return normalizeResponse({
             items: source.slice(start, start + CONFIG.PAGE_SIZE),
@@ -71,6 +74,7 @@ async function getArticles({ page, keyword, mode, scenario, signal }) {
     url.searchParams.set('page', String(page));
     url.searchParams.set('size', String(CONFIG.PAGE_SIZE));
     if (keyword) url.searchParams.set('keyword', keyword);
+    if (year !== null) url.searchParams.set('year', String(year));
 
     const response = await fetch(url, {
         method: 'GET',
@@ -85,7 +89,9 @@ async function getArticles({ page, keyword, mode, scenario, signal }) {
                 message = errorData.error;
             }
         } catch (_) { /* keep HTTP status */ }
-        throw new Error(message);
+        const error = new Error(`HTTP ${response.status}: ${message}`);
+        error.status = response.status;
+        throw error;
     }
     return normalizeResponse(await response.json());
 }
@@ -195,6 +201,7 @@ async function loadPage() {
     const request = {
         page: state.page,
         keyword: state.keyword,
+        year: state.year,
         mode: state.mode,
         scenario: state.scenario,
         signal: state.controller.signal
@@ -213,12 +220,16 @@ async function loadPage() {
         }
         state.page = result.page;
         statusEl.textContent = '';
-        $('count-pill').textContent = `${result.totalItems} articles`;
+        $('count-pill').textContent = `${result.totalItems} article${result.totalItems === 1 ? '' : 's'}`;
 
         if (result.totalItems === 0 || result.items.length === 0) {
             $('page-label').textContent = '';
-            showState('empty', 'No articles found', state.keyword
-                ? `No articles match "${state.keyword}". Try another keyword.`
+            const criteria = [
+                state.keyword ? `keyword "${state.keyword}"` : null,
+                state.year !== null ? `year ${state.year}` : null
+            ].filter(Boolean).join(' and ');
+            showState('empty', 'No articles found', criteria
+                ? `No articles match ${criteria}. Try different filters.`
                 : 'There are no articles to display at the moment.');
             return;
         }
@@ -233,8 +244,8 @@ async function loadPage() {
         $('count-pill').textContent = 'Unavailable';
         $('page-label').textContent = '';
         showState('error', 'Could not load articles',
-            err instanceof TypeError && state.mode === 'api'
-                ? `Browser could not access ${CONFIG.API_URL}. Since the backend is running, check that this page is opened at http://localhost:${window.location.port} (not 127.0.0.1) and that the backend allows this origin in CORS.`
+            err?.name === 'TypeError' && state.mode === 'api'
+                ? `Cannot connect to ${CONFIG.API_URL}. Check that Spring Boot is running on port 8080, MySQL is accessible, and CORS allows this page's origin (${window.location.origin}).`
                 : err.message || 'Something went wrong. Please try again.');
         console.error('[Browse Articles]', err);
     }
@@ -249,7 +260,25 @@ $('next-btn').addEventListener('click', () => {
 });
 $('browse-filter-form').addEventListener('submit', event => {
     event.preventDefault();
+    const yearText = $('year').value.trim();
+    // Validate before sending the request. HTTP 400 from the API is handled by getArticles().
+    if (yearText && (!/^\d{1,4}$/.test(yearText) || Number(yearText) < 1)) {
+        statusEl.textContent = '';
+        $('count-pill').textContent = '';
+        $('page-label').textContent = '';
+        showState('error', 'Invalid publication year', 'Enter a year between 1 and 9999, or leave it blank.');
+        return;
+    }
     state.keyword = $('keyword').value.trim();
+    state.year = yearText ? Number(yearText) : null;
+    state.page = 1;
+    loadPage();
+});
+$('clear-filters').addEventListener('click', () => {
+    $('keyword').value = '';
+    $('year').value = '';
+    state.keyword = '';
+    state.year = null;
     state.page = 1;
     loadPage();
 });

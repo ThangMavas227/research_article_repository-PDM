@@ -273,3 +273,19 @@ article p {
     background: #fff;
     color: #4b5563;
 }
+
+/* Year filter and clear button: reuse the existing search form layout. */
+#year {
+    flex: 0 1 135px;
+    min-width: 110px;
+}
+form[role="search"] .secondary-btn {
+    background: #e5e7eb;
+    color: #1f2937;
+}
+form[role="search"] .secondary-btn:hover {
+    background: #d1d5db;
+}
+@media (max-width: 600px) {
+    #year { flex: none; min-width: 0; width: 100%; }
+}

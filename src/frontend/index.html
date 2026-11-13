@@ -8,7 +8,7 @@
 
     <title>Research Article Repository</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Load before the page so localhost origin correction happens first. -->
+    <!-- Shared API URL and default Mock/API mode. -->
     <script src="config.js"></script>
 </head>
 
@@ -35,15 +35,25 @@
                     type="search"
                     id="keyword"
                     name="keyword"
-                    placeholder="Enter article title or keyword"
+                    placeholder="Search by title or author"
             >
 
-            <button type="submit">
-                Search
-            </button>
+            <label for="year">Year</label>
+            <input
+                    type="number"
+                    id="year"
+                    name="year"
+                    min="1"
+                    max="9999"
+                    step="1"
+                    placeholder="Any year"
+            >
+
+            <button type="submit">Search</button>
+            <button type="button" id="clear-filters" class="secondary-btn">Clear</button>
         </form>
 
-        <!-- The API is the default; mock mode is available for offline demos. -->
+        <!-- Starts in Mock mode while USE_API=false; switch manually for integration tests. -->
         <div class="data-controls">
             <label for="data-mode">Data source:</label>
             <select id="data-mode">
