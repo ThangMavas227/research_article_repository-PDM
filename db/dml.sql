@@ -130,6 +130,47 @@ END$$
 DELIMITER ;
 
 -- ---------------------------------------------------------------------
+-- B2. Transaction: a NEW author and a NEW article are inserted together (all-or-nothing)
+--     Author + Article + Writes change three tables; if any statement fails, ROLLBACK removes
+--     everything, including the new author.
+-- ---------------------------------------------------------------------
+DROP PROCEDURE IF EXISTS sp_submit_article_with_new_author;
+DELIMITER $$
+CREATE PROCEDURE sp_submit_article_with_new_author(
+    IN p_author_id VARCHAR(15), IN p_author_name VARCHAR(150),
+    IN p_article VARCHAR(15), IN p_title VARCHAR(255), IN p_doi VARCHAR(100),
+    IN p_venue VARCHAR(15), IN p_edition INT, IN p_startpage INT)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;      -- any error (duplicate DOI, unknown venue, ...) undoes all three inserts
+        RESIGNAL;      -- and the error is reported to the caller
+    END;
+    START TRANSACTION;
+    INSERT INTO Author (AuthorID, FullName) VALUES (p_author_id, p_author_name);
+    INSERT INTO Article (ArticleID, Title, DOI, StartPage, VenueID, EditionNumber)
+        VALUES (p_article, p_title, p_doi, p_startpage, p_venue, p_edition);
+    INSERT INTO Writes (ArticleID, AuthorID, Position) VALUES (p_article, p_author_id, 1);
+    COMMIT;            -- all three rows are kept
+END$$
+DELIMITER ;
+
+-- (a) COMMIT path: everything succeeds, the three rows are kept
+CALL sp_submit_article_with_new_author('AU902', 'Demo Author', 'AR902',
+     'Transaction Demo: New Author and New Article', '10.5555/rr.demo.902', 'V016', 1, 500);
+SELECT a.AuthorID, a.FullName, ar.ArticleID, ar.Title, w.Position
+FROM Author a JOIN Writes w ON w.AuthorID = a.AuthorID JOIN Article ar ON ar.ArticleID = w.ArticleID
+WHERE a.AuthorID = 'AU902';                                  -- 1 row: the transaction was committed
+-- clean-up, so that the sample data stays unchanged
+DELETE FROM Article WHERE ArticleID = 'AR902';               -- cascades to Writes
+DELETE FROM Author  WHERE AuthorID  = 'AU902';
+
+-- (b) ROLLBACK path: the DOI already exists, so the Article insert fails (error 1062 is EXPECTED here)
+CALL sp_submit_article_with_new_author('AU903', 'Rolled Back Author', 'AR903',
+     'This Article Is Rejected', '10.1145/2699501', 'V016', 1, 501);
+SELECT COUNT(*) AS new_author_left_behind FROM Author WHERE AuthorID = 'AU903';   -- 0: the author insert was rolled back too
+
+-- ---------------------------------------------------------------------
 -- C. Constraint tests: EVERY statement below must FAIL (expected error in comment)
 -- ---------------------------------------------------------------------
 INSERT INTO Author (AuthorID, FullName) VALUES ('AU001', 'Duplicate Key');                  -- 1062 duplicate PK
