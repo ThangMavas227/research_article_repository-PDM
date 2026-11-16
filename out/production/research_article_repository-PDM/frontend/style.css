@@ -1,0 +1,291 @@
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f7fb;
+    color: #1f2937;
+    line-height: 1.6;
+}
+
+header {
+    background: #1e3a8a;
+    color: white;
+    padding: 20px max(24px, calc((100% - 1100px) / 2));
+}
+
+header h1 {
+    margin: 0 0 12px;
+    font-size: 24px;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+main {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 0 24px;
+}
+
+#browse > h2 {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+#browse > p {
+    color: #6b7280;
+}
+
+form[role="search"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin: 28px 0;
+    padding: 20px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+}
+
+form input {
+    flex: 1;
+    min-width: 200px;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font: inherit;
+}
+
+form button {
+    padding: 12px 24px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font: inherit;
+}
+
+form button:hover {
+    background: #1d4ed8;
+}
+
+article {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 16px 0;
+}
+
+article h4 {
+    margin: 0 0 12px;
+    color: #1d4ed8;
+    font-size: 18px;
+}
+
+article p {
+    margin: 6px 0;
+    color: #4b5563;
+}
+
+@media (max-width: 600px) {
+    main {
+        margin: 24px auto;
+        padding: 0 16px;
+    }
+
+    form[role="search"] {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    form input {
+        width: 100%;
+        min-width: 0;
+        flex: none;
+    }
+
+    form button {
+        width: 100%;
+    }
+}
+
+/* Card của từng bài báo */
+.article-row {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 16px 0;
+}
+
+/* Tiêu đề bài báo */
+.article-title {
+    margin: 0 0 12px;
+    color: #1d4ed8;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* Khu vực thông tin bài báo */
+.article-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: #4b5563;
+}
+
+/* Nhãn Authors và Published */
+.meta-name {
+    font-weight: bold;
+    margin-right: 6px;
+}
+
+/* Giá trị năm xuất bản */
+.meta-year {
+    color: #2563eb;
+    font-weight: 500;
+}
+
+/* Pagination */
+#pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin: 24px 0;
+}
+
+#pagination[hidden] {
+    display: none;
+}
+
+#pagination button,
+.retry-btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    background: #2563eb;
+    color: white;
+    cursor: pointer;
+}
+
+#pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Empty / Error State */
+.state-box {
+    padding: 32px 20px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.state-title {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Loading State */
+.skeleton {
+    padding: 20px;
+    margin: 16px 0;
+    background: white;
+    border-radius: 10px;
+}
+
+.shimmer {
+    height: 15px;
+    margin: 12px 0;
+    border-radius: 5px;
+    background: #e5e7eb;
+    animation: pulse 1.2s infinite alternate;
+}
+
+.shimmer.wide { width: 85%; }
+.shimmer.short { width: 55%; }
+.shimmer.year { width: 25%; }
+
+@keyframes pulse {
+    to { opacity: 0.35; }
+}
+
+
+/* Article Detail - Back Button */
+.back-btn {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.back-btn:hover {
+    text-decoration: underline;
+}
+
+/* Article Title Link */
+.article-title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.article-title a:hover {
+    text-decoration: underline;
+}
+
+
+/* Data source selector for API / offline mock tests */
+.data-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: -8px 0 24px;
+    font-size: 14px;
+}
+.data-controls select {
+    padding: 7px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font: inherit;
+    background: white;
+}
+#mock-scenario-label[hidden] { display: none; }
+.info-note {
+    padding: 12px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #fff;
+    color: #4b5563;
+}
+
+/* Year filter and clear button: reuse the existing search form layout. */
+#year {
+    flex: 0 1 135px;
+    min-width: 110px;
+}
+form[role="search"] .secondary-btn {
+    background: #e5e7eb;
+    color: #1f2937;
+}
+form[role="search"] .secondary-btn:hover {
+    background: #d1d5db;
+}
+@media (max-width: 600px) {
+    #year { flex: none; min-width: 0; width: 100%; }
+}
