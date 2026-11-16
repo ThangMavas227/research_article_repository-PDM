@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * GET /api/articles?keyword=&year=&page=1&size=8
  * Public endpoint (no login). Response shape follows the frontend contract (browse.js):
- * { items:[{id,title,year,authors:[{id,name}]}], page, size, totalItems, totalPages }
+ * { items:[{id,title,year,doi,abstract,authors:[{id,name}],references:[{id,title}],citedBy:[{id,title}]}], page, size, totalItems, totalPages }
  */
 @RestController
 @RequestMapping("/api/articles")
@@ -31,7 +31,15 @@ public class ArticleController {
 
     public record AuthorItem(String id, String name) {}
 
-    public record ArticleItem(String id, String title, int year, List<AuthorItem> authors) {}
+    public record RefItem(String id, String title) {}
+
+    public record ArticleItem(String id, String title, int year, String doi, String abstractText,
+            List<AuthorItem> authors, List<RefItem> references, List<RefItem> citedBy) {
+
+        /** JSON field is "abstract" (a Java keyword, so the record component has another name). */
+        @com.fasterxml.jackson.annotation.JsonProperty("abstract")
+        public String abstractText() { return abstractText; }
+    }
 
     public record ArticlePage(List<ArticleItem> items, int page, int size, long totalItems, int totalPages) {}
 
@@ -73,18 +81,24 @@ public class ArticleController {
         pageArgs.add(size);
         pageArgs.add((long) (page - 1) * size);
         List<Map<String, Object>> rows = jdbc.queryForList(
-                "SELECT a.ArticleID, a.Title, e.PubYear" + from + where
+                "SELECT a.ArticleID, a.Title, a.DOI, a.Abstract, e.PubYear" + from + where
                         + " ORDER BY e.PubYear DESC, a.Title, a.ArticleID LIMIT ? OFFSET ?",
                 pageArgs.toArray());
 
         Map<String, List<AuthorItem>> authorsByArticle = loadAuthors(rows);
+        // references: articles this one cites; citedBy: articles that cite this one.
+        Map<String, List<RefItem>> refs = loadCitations(rows, "CitingArticleID", "CitedArticleID");
+        Map<String, List<RefItem>> citedBy = loadCitations(rows, "CitedArticleID", "CitingArticleID");
 
         List<ArticleItem> items = new ArrayList<>();
         for (Map<String, Object> r : rows) {
             String id = (String) r.get("ArticleID");
             items.add(new ArticleItem(id, (String) r.get("Title"),
                     ((Number) r.get("PubYear")).intValue(),
-                    authorsByArticle.getOrDefault(id, List.of())));
+                    (String) r.get("DOI"), (String) r.get("Abstract"),
+                    authorsByArticle.getOrDefault(id, List.of()),
+                    refs.getOrDefault(id, List.of()),
+                    citedBy.getOrDefault(id, List.of())));
         }
         return new ArticlePage(items, page, size, totalItems, totalPages);
     }
@@ -101,6 +115,26 @@ public class ArticleController {
                 rs -> {
                     out.computeIfAbsent(rs.getString(1), k -> new ArrayList<>())
                             .add(new AuthorItem(rs.getString(2), rs.getString(3)));
+                }, ids);
+        return out;
+    }
+
+    /**
+     * Citation neighbours of the given articles, one query for the whole page.
+     * keyCol = the column that equals the page's article, otherCol = the neighbour article.
+     * Both arguments are fixed literals from this class, never user input.
+     */
+    private Map<String, List<RefItem>> loadCitations(List<Map<String, Object>> rows, String keyCol, String otherCol) {
+        Map<String, List<RefItem>> out = new HashMap<>();
+        if (rows.isEmpty()) return out;
+        String marks = String.join(",", Collections.nCopies(rows.size(), "?"));
+        Object[] ids = rows.stream().map(r -> r.get("ArticleID")).toArray();
+        jdbc.query("SELECT c." + keyCol + ", o.ArticleID, o.Title FROM Citation c"
+                + " JOIN Article o ON o.ArticleID = c." + otherCol
+                + " WHERE c." + keyCol + " IN (" + marks + ") ORDER BY c." + keyCol + ", o.ArticleID",
+                rs -> {
+                    out.computeIfAbsent(rs.getString(1), k -> new ArrayList<>())
+                            .add(new RefItem(rs.getString(2), rs.getString(3)));
                 }, ids);
         return out;
     }
