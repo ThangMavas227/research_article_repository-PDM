@@ -19,7 +19,9 @@ const pagerEl = $('pagination');
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-// Backend article: { id, title, year, authors: [{ id, name }] }
+// API article shape: { id, title, year, doi, abstract, authors, references, citedBy }.
+// Keep all detail fields when normalizing: the selected article is saved in sessionStorage
+// and articleDetail.js reads it after navigation. Mock data may omit these extra fields.
 function normalizeArticle(raw) {
     const validId = (typeof raw?.id === 'string' && raw.id.trim() !== '') ||
         (typeof raw?.id === 'number' && Number.isInteger(raw.id));
@@ -30,11 +32,33 @@ function normalizeArticle(raw) {
             typeof author.name !== 'string')) {
         throw new Error('Invalid article data returned by the server.');
     }
+
+    // null means absent/unavailable; [] means the API confirmed there are no citations.
+    const normalizeCitations = (items, field) => {
+        if (items == null) return null;
+        if (!Array.isArray(items) || items.some(item =>
+            !item ||
+            !((typeof item.id === 'string' && item.id.trim() !== '') ||
+              (typeof item.id === 'number' && Number.isInteger(item.id))) ||
+            typeof item.title !== 'string')) {
+            throw new Error(`Invalid ${field} data returned by the server.`);
+        }
+        return items.map(item => ({ id: String(item.id), title: item.title }));
+    };
+
+    if ((raw.doi != null && typeof raw.doi !== 'string') ||
+        (raw.abstract != null && typeof raw.abstract !== 'string')) {
+        throw new Error('Invalid DOI or abstract data returned by the server.');
+    }
     return {
         id: String(raw.id),
         title: raw.title,
         year: raw.year,
-        authors: raw.authors.map(author => ({ id: String(author.id), name: author.name }))
+        authors: raw.authors.map(author => ({ id: String(author.id), name: author.name })),
+        doi: raw.doi ?? null,
+        abstract: raw.abstract ?? null,
+        references: normalizeCitations(raw.references, 'references'),
+        citedBy: normalizeCitations(raw.citedBy, 'citedBy')
     };
 }
 
