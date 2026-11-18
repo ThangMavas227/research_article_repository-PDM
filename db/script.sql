@@ -123,6 +123,7 @@ CREATE TABLE Article (
     EditionNumber INT          NOT NULL,
     CONSTRAINT pk_article PRIMARY KEY (ArticleID),
     CONSTRAINT uq_article_doi UNIQUE (DOI),
+    CONSTRAINT uq_article_startpage UNIQUE (VenueID, EditionNumber, StartPage),  -- no two articles of an edition start on the same page
     CONSTRAINT fk_article_edition FOREIGN KEY (VenueID, EditionNumber) REFERENCES Edition (VenueID, EditionNumber)
         ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT ck_article_doi CHECK (DOI REGEXP '^10\\.[0-9]{4,9}/.+'),
@@ -163,7 +164,7 @@ CREATE TABLE Classified (
     CONSTRAINT fk_cl_article FOREIGN KEY (ArticleID) REFERENCES Article (ArticleID)
         ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_cl_area FOREIGN KEY (AreaID) REFERENCES SubjectArea (AreaID)
-        ON DELETE CASCADE ON UPDATE CASCADE
+        ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 CREATE TABLE HasKeyword (
@@ -173,7 +174,7 @@ CREATE TABLE HasKeyword (
     CONSTRAINT fk_hk_article FOREIGN KEY (ArticleID) REFERENCES Article (ArticleID)
         ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_hk_keyword FOREIGN KEY (KeywordID) REFERENCES Keyword (KeywordID)
-        ON DELETE CASCADE ON UPDATE CASCADE
+        ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
 CREATE TABLE User (

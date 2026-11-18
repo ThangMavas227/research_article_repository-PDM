@@ -5,6 +5,7 @@
 -- two demo procedures are dropped, so the sample data is left exactly as it was.
 -- Safe to run again. Unexpected errors are NEVER reported as PASS.
 --
+-- Test articles use StartPage 9001-9003 (unused pages) because (VenueID, EditionNumber, StartPage) is UNIQUE.
 -- Scenario: "submit a new article together with a new author". Three tables change
 -- (Author, Article, Writes), so the work must be all-or-nothing:
 --   A. COMMIT   : every statement succeeds -> all three rows are kept
@@ -52,7 +53,7 @@ BEGIN
                          AND Title = 'Transaction Test Article'
                          AND DOI = '10.9999/pdm-transaction-test'
                          AND Abstract = 'Sample article for transaction testing.'
-                         AND StartPage = 1 AND VenueID = 'V001' AND EditionNumber = 1)
+                         AND StartPage = 9001 AND VenueID = 'V001' AND EditionNumber = 1)
            AND EXISTS (SELECT 1 FROM Writes
                        WHERE ArticleID = 'AR026' AND AuthorID = 'AU100' AND Position = 1)
         THEN
@@ -72,7 +73,7 @@ BEGIN
             (ArticleID, Title, DOI, Abstract, StartPage, VenueID, EditionNumber)
         VALUES
             ('AR026', 'Transaction Test Article', '10.9999/pdm-transaction-test',
-             'Sample article for transaction testing.', 1, 'V001', 1);
+             'Sample article for transaction testing.', 9001, 'V001', 1);
 
         INSERT INTO Writes (ArticleID, AuthorID, Position)
         VALUES ('AR026', 'AU100', 1);
@@ -134,7 +135,7 @@ BEGIN
         (ArticleID, Title, DOI, Abstract, StartPage, VenueID, EditionNumber)
     VALUES
         ('AR027', 'Rollback Test Article', '10.9999/pdm-rollback-test',
-         'Sample article for rollback testing.', 1, 'V001', 1);
+         'Sample article for rollback testing.', 9002, 'V001', 1);
 
     -- Deliberate violation of ck_writes_position.
     INSERT INTO Writes (ArticleID, AuthorID, Position)
@@ -194,7 +195,7 @@ BEGIN
         (ArticleID, Title, DOI, Abstract, StartPage, VenueID, EditionNumber)
     VALUES
         ('AR028', 'Duplicate DOI Test Article', '10.1145/2699501',
-         'Sample article for the duplicate DOI test.', 1, 'V001', 1);
+         'Sample article for the duplicate DOI test.', 9003, 'V001', 1);
 
     INSERT INTO Writes (ArticleID, AuthorID, Position)
     VALUES ('AR028', 'AU102', 1);
