@@ -29,7 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
- * GET    /api/articles?keyword=&year=&page=1&size=8   public (no login)
+ * GET    /api/articles?keyword=&year=&yearFrom=&yearTo=&venueType=&page=1&size=10   public (no login)
  * POST   /api/articles                                admin only: add an article
  * PUT    /api/articles/{id}                           admin only: edit an article
  * DELETE /api/articles/{id}                           admin only: delete an article
@@ -87,22 +87,32 @@ public class ArticleController {
     public ArticlePage list(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer yearFrom,
+            @RequestParam(required = false) Integer yearTo,
+            @RequestParam(required = false) String venueType,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
 
         if (page < 1) throw new BadRequestException("page must be >= 1");
         if (size < 1 || size > MAX_SIZE) throw new BadRequestException("size must be between 1 and " + MAX_SIZE);
 
-        // Build the WHERE clause only from the filters that were supplied.
+        // Keep ?year= for existing browse.js clients. SavedSearch uses the range filters.
+        if (year != null && (yearFrom != null || yearTo != null)) {
+            throw new BadRequestException("year cannot be combined with yearFrom or yearTo");
+        }
+        SearchCriteria.validateYear("year", year);
+        SearchCriteria filters = SearchCriteria.normalized(keyword, yearFrom, yearTo, venueType);
+
+        // Build WHERE only from fixed SQL; bind all user input with placeholders.
         StringBuilder where = new StringBuilder(" WHERE 1=1");
         List<Object> args = new ArrayList<>();
-        if (keyword != null && !keyword.isBlank()) {
+        if (filters.keyword() != null) {
             // Match the title OR the name of any author of the article.
             // The database collation (utf8mb4_0900_ai_ci) already ignores case and accents.
             where.append(" AND (a.Title LIKE ? ESCAPE '\\\\' OR EXISTS ("
                     + "SELECT 1 FROM Writes w2 JOIN Author au2 ON au2.AuthorID = w2.AuthorID"
                     + " WHERE w2.ArticleID = a.ArticleID AND au2.FullName LIKE ? ESCAPE '\\\\'))");
-            String pattern = "%" + escapeLike(keyword.trim()) + "%";
+            String pattern = "%" + escapeLike(filters.keyword()) + "%";
             args.add(pattern);
             args.add(pattern);
         }
@@ -110,10 +120,20 @@ public class ArticleController {
             where.append(" AND e.PubYear = ?");
             args.add(year);
         }
+        if (filters.yearFrom() != null) {
+            where.append(" AND e.PubYear >= ?");
+            args.add(filters.yearFrom());
+        }
+        if (filters.yearTo() != null) {
+            where.append(" AND e.PubYear <= ?");
+            args.add(filters.yearTo());
+        }
+        if (filters.venueType() != null) {
+            where.append(" AND v.VenueType = ?");
+            args.add(filters.venueType());
+        }
 
-        String from = ARTICLE_FROM;
-
-        Long total = jdbc.queryForObject("SELECT COUNT(*)" + from + where, Long.class, args.toArray());
+        Long total = jdbc.queryForObject("SELECT COUNT(*)" + ARTICLE_FROM + where, Long.class, args.toArray());
         long totalItems = total == null ? 0 : total;
         int totalPages = (int) ((totalItems + size - 1) / size);
 
@@ -121,12 +141,11 @@ public class ArticleController {
         pageArgs.add(size);
         pageArgs.add((long) (page - 1) * size);
         List<Map<String, Object>> rows = jdbc.queryForList(
-                ARTICLE_COLUMNS + from + where
+                ARTICLE_COLUMNS + ARTICLE_FROM + where
                         + " ORDER BY e.PubYear DESC, a.Title, a.ArticleID LIMIT ? OFFSET ?",
                 pageArgs.toArray());
 
-        List<ArticleItem> items = toItems(rows);
-        return new ArticlePage(items, page, size, totalItems, totalPages);
+        return new ArticlePage(toItems(rows), page, size, totalItems, totalPages);
     }
 
     /** Builds full article objects (authors, references, citedBy) for rows from ARTICLE_COLUMNS. */
