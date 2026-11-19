@@ -1,6 +1,13 @@
 
 "use strict";
 
+// API Configuration
+const API_BASE_URL = "http://localhost:8080";
+
+// Session Storage Keys
+const TOKEN_KEY = "rar_auth_token";
+const USER_KEY = "rar_auth_user";
+
 // DOM Elements
 const form = document.getElementById("login-form");
 const usernameInput = document.getElementById("username");
@@ -9,6 +16,7 @@ const passwordInput = document.getElementById("password");
 const usernameError = document.getElementById("username-error");
 const passwordError = document.getElementById("password-error");
 const formMessage = document.getElementById("form-message");
+const loginButton = document.getElementById("login-button");
 
 const togglePassword = document.getElementById("toggle-password");
 const togglePasswordIconPath = document.getElementById(
@@ -18,7 +26,7 @@ const togglePasswordIconCircle = document.getElementById(
     "toggle-password-icon-circle"
 );
 
-// Display validation error
+// Display Validation Error
 function setError(input, errorElement, message) {
     errorElement.textContent = message;
 
@@ -45,17 +53,15 @@ function validateForm() {
             usernameError,
             "Username is required."
         );
-
         isValid = false;
     }
 
-    if (!password.trim()) {
+    if (!password) {
         setError(
             passwordInput,
             passwordError,
             "Password is required."
         );
-
         isValid = false;
     }
 
@@ -66,10 +72,8 @@ function validateForm() {
 togglePassword.addEventListener("click", () => {
     const isHidden = passwordInput.type === "password";
 
-    // Toggle input visibility
     passwordInput.type = isHidden ? "text" : "password";
 
-    // Update accessibility attributes
     togglePassword.setAttribute(
         "aria-label",
         isHidden ? "Hide password" : "Show password"
@@ -80,9 +84,8 @@ togglePassword.addEventListener("click", () => {
         String(isHidden)
     );
 
-    // Toggle eye / eye-off icon
     if (isHidden) {
-        // Password is now visible: eye-off
+        // Eye-off icon
         togglePasswordIconPath.setAttribute(
             "d",
             "M17.94 17.94A10.94 10.94 0 0 1 12 19c-6.5 0-10-7-10-7a21.77 21.77 0 0 1 5.06-5.94M9.9 4.24A10.93 10.93 0 0 1 12 5c6.5 0 10 7 10 7a21.8 21.8 0 0 1-3.38 4.62M1 1l22 22"
@@ -90,7 +93,7 @@ togglePassword.addEventListener("click", () => {
 
         togglePasswordIconCircle.style.display = "none";
     } else {
-        // Password is now hidden: normal eye
+        // Normal eye icon
         togglePasswordIconPath.setAttribute(
             "d",
             "M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"
@@ -100,7 +103,7 @@ togglePassword.addEventListener("click", () => {
     }
 });
 
-// Clear errors when typing
+// Clear Errors When Typing
 usernameInput.addEventListener("input", () => {
     setError(usernameInput, usernameError, "");
     formMessage.textContent = "";
@@ -111,9 +114,71 @@ passwordInput.addEventListener("input", () => {
     formMessage.textContent = "";
 });
 
-// Handle Login Form Submission
-form.addEventListener("submit", (event) => {
+// Set Login Loading State
+function setLoading(isLoading) {
+    loginButton.disabled = isLoading;
+    usernameInput.disabled = isLoading;
+    passwordInput.disabled = isLoading;
+
+    loginButton.textContent = isLoading
+        ? "Signing in..."
+        : "Sign In";
+}
+
+// Real Backend Login Request
+async function login(username, password) {
+    const response = await fetch(
+        `${API_BASE_URL}/api/auth/login`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                username,
+                password
+            })
+        }
+    );
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+        if (response.status === 401) {
+            throw new Error("Invalid username or password.");
+        }
+
+        if (response.status === 400) {
+            throw new Error(
+                data.error || "Please check your login information."
+            );
+        }
+
+        throw new Error(
+            data.error || `Login failed (HTTP ${response.status}).`
+        );
+    }
+
+    // Validate Backend Response
+    if (
+        typeof data.token !== "string" ||
+        !data.token ||
+        !data.user ||
+        typeof data.user.id !== "string" ||
+        typeof data.user.username !== "string" ||
+        !["admin", "reader"].includes(data.user.role)
+    ) {
+        throw new Error("Invalid login response from Backend.");
+    }
+
+    return data;
+}
+
+// Submit Login Form
+form.addEventListener("submit", async (event) => {
     event.preventDefault();
+
+    if (loginButton.disabled) return;
 
     formMessage.textContent = "";
 
@@ -126,8 +191,37 @@ form.addEventListener("submit", (event) => {
         return;
     }
 
-    // Backend Authentication API is not integrated yet.
-    // No fake token or fake login session is created.
-    formMessage.textContent =
-        "Login is not available until backend integration is complete.";
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+
+    setLoading(true);
+
+    try {
+        // Call Real Login API
+        const data = await login(username, password);
+
+        // Save Token and User for navigation between pages
+        sessionStorage.setItem(TOKEN_KEY, data.token);
+        sessionStorage.setItem(
+            USER_KEY,
+            JSON.stringify(data.user)
+        );
+
+        // Clear password from the form
+        passwordInput.value = "";
+
+        // Both roles go to Browse for now.
+        // Role-based Navigation will be integrated separately.
+        window.location.assign("./index.html");
+
+    } catch (error) {
+        const message = error instanceof TypeError
+            ? "Cannot connect to Backend. Check Spring Boot."
+            : error.message || "Login failed. Please try again.";
+
+        formMessage.textContent = message;
+
+    } finally {
+        setLoading(false);
+    }
 });
