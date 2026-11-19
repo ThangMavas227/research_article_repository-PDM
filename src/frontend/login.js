@@ -1,13 +1,6 @@
 
 "use strict";
-
-// API Configuration
-const API_BASE_URL = "http://localhost:8080";
-
-// Session Storage Keys
-const TOKEN_KEY = "rar_auth_token";
-const USER_KEY = "rar_auth_user";
-
+const API_BASE_URL = window.APP_CONFIG?.AUTH_BASE_URL||"http://localhost:8080";
 // DOM Elements
 const form = document.getElementById("login-form");
 const usernameInput = document.getElementById("username");
@@ -201,18 +194,15 @@ form.addEventListener("submit", async (event) => {
         const data = await login(username, password);
 
         // Save Token and User for navigation between pages
-        sessionStorage.setItem(TOKEN_KEY, data.token);
-        sessionStorage.setItem(
-            USER_KEY,
-            JSON.stringify(data.user)
-        );
+        window.RARAuth.saveSession(data);
 
-        // Clear password from the form
+    // Clear password
         passwordInput.value = "";
 
-        // Both roles go to Browse for now.
-        // Role-based Navigation will be integrated separately.
-        window.location.assign("./index.html");
+        // Handle redirect after successful login
+        const requestedNext = new URLSearchParams(window.location.search).get("next");
+        const next = data.user.role === "admin" && requestedNext === "articleEditor.html"? "./articleEditor.html": "./index.html";
+        window.location.assign(next);
 
     } catch (error) {
         const message = error instanceof TypeError
@@ -225,3 +215,7 @@ form.addEventListener("submit", async (event) => {
         setLoading(false);
     }
 });
+    // Message when Guest tries to access Admin page
+if ( new URLSearchParams(window.location.search).get("reason") === "admin-required") {
+    formMessage.textContent ="Sign in with an administrator account to manage content.";
+}

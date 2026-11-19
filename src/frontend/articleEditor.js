@@ -1,6 +1,7 @@
 /* Manage Content: real API-backed read-only listing until CRUD endpoints exist. */
 (() => {
   'use strict';
+   if (!window.RARAuth || window.RARAuth.getRole() !== 'admin') return;
   const $ = id => document.getElementById(id);
   const PAGE_SIZE = 5;
   const state = { articles: [], authors: [], tab: 'articles', page: 1 };
