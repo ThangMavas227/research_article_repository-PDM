@@ -6,22 +6,20 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title>Research Article Repository</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Shared backend API URL. -->
+    <link rel="stylesheet" href="navigation.css">
+
     <script src="config.js"></script>
+    <script src="navigation.js" defer></script>
 </head>
 
 <body>
 <header>
     <h1>Research Article Repository</h1>
-    <nav aria-label="Main navigation">
-        <a href="#browse">Browse Articles</a>
-        <a href="dashboard.html">Dashboard</a>
-        <a href="articleEditor.html">Manage Content</a>
+    <nav aria-label="Main navigation" data-app-navigation>
     </nav>
 </header>
-
+<div data-navigation-notice hidden role="status" aria-live="polite"></div>  
 <main>
     <section id="browse">
         <h2>Browse Research Articles</h2>
