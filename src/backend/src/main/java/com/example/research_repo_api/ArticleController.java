@@ -6,16 +6,36 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Pattern;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 /**
- * GET /api/articles?keyword=&year=&page=1&size=8
- * Public endpoint (no login). Response shape follows the frontend contract (browse.js):
- * { items:[{id,title,year,doi,abstract,authors:[{id,name}],references:[{id,title}],citedBy:[{id,title}]}], page, size, totalItems, totalPages }
+ * GET    /api/articles?keyword=&year=&page=1&size=8   public (no login)
+ * POST   /api/articles                                admin only: add an article
+ * PUT    /api/articles/{id}                           admin only: edit an article
+ * DELETE /api/articles/{id}                           admin only: delete an article
+ * Every article has the same shape everywhere (list, POST and PUT responses):
+ * {id,title,year,doi,abstract,venueId,venueName,editionNumber,startPage,authors:[{id,name}],
+ *  references:[{id,title}],citedBy:[{id,title}]}
  */
 @RestController
 @RequestMapping("/api/articles")
@@ -23,10 +43,21 @@ public class ArticleController {
 
     private static final int MAX_SIZE = 100;
 
-    private final JdbcTemplate jdbc;
+    private static final String ARTICLE_COLUMNS =
+            "SELECT a.ArticleID, a.Title, a.DOI, a.Abstract, a.StartPage, a.VenueID, v.Name AS VenueName,"
+                    + " a.EditionNumber, e.PubYear";
+    private static final String ARTICLE_FROM =
+            " FROM Article a JOIN Edition e ON e.VenueID = a.VenueID AND e.EditionNumber = a.EditionNumber"
+                    + " JOIN Venue v ON v.VenueID = a.VenueID";
 
-    public ArticleController(JdbcTemplate jdbc) {
+    private static final Pattern DOI = Pattern.compile("^10\\.[0-9]{4,9}/.+");
+
+    private final JdbcTemplate jdbc;
+    private final AuthService auth;
+
+    public ArticleController(JdbcTemplate jdbc, AuthService auth) {
         this.jdbc = jdbc;
+        this.auth = auth;
     }
 
     public record AuthorItem(String id, String name) {}
@@ -34,12 +65,21 @@ public class ArticleController {
     public record RefItem(String id, String title) {}
 
     public record ArticleItem(String id, String title, int year, String doi, String abstractText,
+            String venueId, String venueName, int editionNumber, int startPage,
             List<AuthorItem> authors, List<RefItem> references, List<RefItem> citedBy) {
 
         /** JSON field is "abstract" (a Java keyword, so the record component has another name). */
-        @com.fasterxml.jackson.annotation.JsonProperty("abstract")
+        @JsonProperty("abstract")
         public String abstractText() { return abstractText; }
     }
+
+    /** One author of an article: give {id} for an existing author, or {name} to create a new author. */
+    public record AuthorInput(String id, String name) {}
+
+    /** Body of POST / PUT. authors are in writing order (first = Position 1). */
+    public record ArticleRequest(String title, String doi,
+            @JsonProperty("abstract") String abstractText,
+            Integer startPage, String venueId, Integer editionNumber, List<AuthorInput> authors) {}
 
     public record ArticlePage(List<ArticleItem> items, int page, int size, long totalItems, int totalPages) {}
 
@@ -71,7 +111,7 @@ public class ArticleController {
             args.add(year);
         }
 
-        String from = " FROM Article a JOIN Edition e ON e.VenueID = a.VenueID AND e.EditionNumber = a.EditionNumber";
+        String from = ARTICLE_FROM;
 
         Long total = jdbc.queryForObject("SELECT COUNT(*)" + from + where, Long.class, args.toArray());
         long totalItems = total == null ? 0 : total;
@@ -81,10 +121,16 @@ public class ArticleController {
         pageArgs.add(size);
         pageArgs.add((long) (page - 1) * size);
         List<Map<String, Object>> rows = jdbc.queryForList(
-                "SELECT a.ArticleID, a.Title, a.DOI, a.Abstract, e.PubYear" + from + where
+                ARTICLE_COLUMNS + from + where
                         + " ORDER BY e.PubYear DESC, a.Title, a.ArticleID LIMIT ? OFFSET ?",
                 pageArgs.toArray());
 
+        List<ArticleItem> items = toItems(rows);
+        return new ArticlePage(items, page, size, totalItems, totalPages);
+    }
+
+    /** Builds full article objects (authors, references, citedBy) for rows from ARTICLE_COLUMNS. */
+    private List<ArticleItem> toItems(List<Map<String, Object>> rows) {
         Map<String, List<AuthorItem>> authorsByArticle = loadAuthors(rows);
         // references: articles this one cites; citedBy: articles that cite this one.
         Map<String, List<RefItem>> refs = loadCitations(rows, "CitingArticleID", "CitedArticleID");
@@ -96,11 +142,134 @@ public class ArticleController {
             items.add(new ArticleItem(id, (String) r.get("Title"),
                     ((Number) r.get("PubYear")).intValue(),
                     (String) r.get("DOI"), (String) r.get("Abstract"),
+                    (String) r.get("VenueID"), (String) r.get("VenueName"),
+                    ((Number) r.get("EditionNumber")).intValue(), ((Number) r.get("StartPage")).intValue(),
                     authorsByArticle.getOrDefault(id, List.of()),
                     refs.getOrDefault(id, List.of()),
                     citedBy.getOrDefault(id, List.of())));
         }
-        return new ArticlePage(items, page, size, totalItems, totalPages);
+        return items;
+    }
+
+    private ArticleItem loadOne(String id) {
+        List<Map<String, Object>> rows = jdbc.queryForList(ARTICLE_COLUMNS + ARTICLE_FROM + " WHERE a.ArticleID = ?", id);
+        if (rows.isEmpty()) throw new ApiException(HttpStatus.NOT_FOUND, "article not found");
+        return toItems(rows).get(0);
+    }
+
+    // ---------------------------------------------------------------- write endpoints (admin only)
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @Transactional
+    public ArticleItem create(HttpServletRequest request, @RequestBody(required = false) ArticleRequest body) {
+        auth.requireAdmin(request);
+        validate(body, true);
+        String id = nextId("Article", "ArticleID", "AR");
+        jdbc.update("INSERT INTO Article (ArticleID, Title, DOI, Abstract, StartPage, VenueID, EditionNumber)"
+                + " VALUES (?, ?, ?, ?, ?, ?, ?)",
+                id, body.title().trim(), body.doi().trim(), blankToNull(body.abstractText()),
+                body.startPage(), body.venueId().trim(), body.editionNumber());
+        writeAuthors(id, body.authors());
+        return loadOne(id);
+    }
+
+    /** Full edit: title, doi, abstract, startPage, venueId, editionNumber are required. authors is optional
+     *  (omit = keep the current authors; send a list = replace them). */
+    @PutMapping("/{id}")
+    @Transactional
+    public ArticleItem update(HttpServletRequest request, @PathVariable String id,
+            @RequestBody(required = false) ArticleRequest body) {
+        auth.requireAdmin(request);
+        requireExists(id);
+        validate(body, false);
+        jdbc.update("UPDATE Article SET Title = ?, DOI = ?, Abstract = ?, StartPage = ?, VenueID = ?, EditionNumber = ?"
+                + " WHERE ArticleID = ?",
+                body.title().trim(), body.doi().trim(), blankToNull(body.abstractText()),
+                body.startPage(), body.venueId().trim(), body.editionNumber(), id);
+        if (body.authors() != null) {
+            jdbc.update("DELETE FROM Writes WHERE ArticleID = ?", id);
+            writeAuthors(id, body.authors());
+        }
+        return loadOne(id);
+    }
+
+    /** Deletes the article together with its author links, citations (both directions), subjects and keywords. */
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Transactional
+    public void delete(HttpServletRequest request, @PathVariable String id) {
+        auth.requireAdmin(request);
+        if (jdbc.update("DELETE FROM Article WHERE ArticleID = ?", id) == 0) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "article not found");
+        }
+    }
+
+    private void requireExists(String id) {
+        Integer n = jdbc.queryForObject("SELECT COUNT(*) FROM Article WHERE ArticleID = ?", Integer.class, id);
+        if (n == null || n == 0) throw new ApiException(HttpStatus.NOT_FOUND, "article not found");
+    }
+
+    private void validate(ArticleRequest b, boolean authorsRequired) {
+        if (b == null) throw new BadRequestException("request body is required");
+        if (b.title() == null || b.title().isBlank()) throw new BadRequestException("title is required");
+        if (b.title().trim().length() > 255) throw new BadRequestException("title must be at most 255 characters");
+        if (b.doi() == null || b.doi().isBlank()) throw new BadRequestException("doi is required");
+        if (!DOI.matcher(b.doi().trim()).matches() || b.doi().trim().length() > 100) {
+            throw new BadRequestException("doi must look like 10.1234/abc (at most 100 characters)");
+        }
+        if (b.startPage() == null || b.startPage() < 1) throw new BadRequestException("startPage is required and must be >= 1");
+        if (b.venueId() == null || b.venueId().isBlank()) throw new BadRequestException("venueId is required");
+        if (b.editionNumber() == null || b.editionNumber() < 1) {
+            throw new BadRequestException("editionNumber is required and must be >= 1");
+        }
+        Integer ed = jdbc.queryForObject("SELECT COUNT(*) FROM Edition WHERE VenueID = ? AND EditionNumber = ?",
+                Integer.class, b.venueId().trim(), b.editionNumber());
+        if (ed == null || ed == 0) throw new BadRequestException("this venue/edition does not exist");
+
+        if (b.authors() == null) {
+            if (authorsRequired) throw new BadRequestException("authors must contain at least one author");
+            return;
+        }
+        if (b.authors().isEmpty()) throw new BadRequestException("authors must contain at least one author");
+        Set<String> seen = new HashSet<>();
+        for (AuthorInput a : b.authors()) {
+            boolean hasId = a != null && a.id() != null && !a.id().isBlank();
+            boolean hasName = a != null && a.name() != null && !a.name().isBlank();
+            if (hasId == hasName) throw new BadRequestException("each author needs either id (existing) or name (new), not both");
+            if (hasName && a.name().trim().length() > 150) throw new BadRequestException("author name must be at most 150 characters");
+            if (hasId) {
+                if (!seen.add(a.id().trim())) throw new BadRequestException("the same author is listed twice");
+                Integer n = jdbc.queryForObject("SELECT COUNT(*) FROM Author WHERE AuthorID = ?", Integer.class, a.id().trim());
+                if (n == null || n == 0) throw new BadRequestException("author not found: " + a.id().trim());
+            }
+        }
+    }
+
+    /** Inserts the Writes rows (Position 1, 2, 3 ... in list order); new authors are created first. */
+    private void writeAuthors(String articleId, List<AuthorInput> authors) {
+        int position = 1;
+        for (AuthorInput a : authors) {
+            String authorId;
+            if (a.id() != null && !a.id().isBlank()) {
+                authorId = a.id().trim();
+            } else {
+                authorId = nextId("Author", "AuthorID", "AU");
+                jdbc.update("INSERT INTO Author (AuthorID, FullName) VALUES (?, ?)", authorId, a.name().trim());
+            }
+            jdbc.update("INSERT INTO Writes (ArticleID, AuthorID, Position) VALUES (?, ?, ?)", articleId, authorId, position++);
+        }
+    }
+
+    /** Next id such as AR041: the largest number already used with this prefix, plus one. */
+    private String nextId(String table, String column, String prefix) {
+        Long max = jdbc.queryForObject("SELECT COALESCE(MAX(CAST(SUBSTRING(" + column + ", 3) AS UNSIGNED)), 0) FROM "
+                + table + " WHERE " + column + " REGEXP '^" + prefix + "[0-9]+$'", Long.class);
+        return String.format("%s%03d", prefix, (max == null ? 0 : max) + 1);
+    }
+
+    private static String blankToNull(String s) {
+        return s == null || s.isBlank() ? null : s.trim();
     }
 
     /** Authors of the given articles, ordered by Writes.Position. One query for the whole page. */
