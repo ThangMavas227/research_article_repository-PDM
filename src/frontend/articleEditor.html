@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="auth-pending">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,27 +7,17 @@
   <title>Manage Content | Research Article Repository</title>
   <!-- Shared project styles + editor-only styles -->
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="navigation.css">
   <link rel="stylesheet" href="articleEditor.css">
-
-  <!-- Hide editor until authorization is checked -->
-  <style>
-    .auth-pending body {
-      visibility: hidden;
-    }
-  </style>
-
-  <!-- Shared configuration and navigation -->
-  <script src="config.js"></script>
-  <script src="navigation.js"></script>
-  <script>window.RARAuth.requireAdmin();</script>
 </head>
 <body>
   <header>
     <h1>Research Article Repository</h1>
-    <nav aria-label="Main navigation" data-app-navigation></nav>
+    <nav aria-label="Main navigation">
+      <a href="index.html">Browse Articles</a>
+      <a href="articleEditor.html" aria-current="page">Manage Content</a>
+    </nav>
   </header>
-<div data-navigation-notice hidden role="status" aria-live="polite"></div>
+
   <main>
     <section class="page-intro" aria-labelledby="page-title">
       <h2 id="page-title">Manage Research Content</h2>

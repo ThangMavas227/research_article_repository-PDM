@@ -5,10 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Article Statistics Dashboard | Research Article Repository</title>
   <link rel="stylesheet" href="dashboard.css">
-  <link rel="stylesheet" href="navigation.css">
-
   <script src="config.js" defer></script>
-  <script src="navigation.js" defer></script>
   <script src="dashboard.js" defer></script>
 </head>
 <body>
@@ -16,15 +13,17 @@
     <aside class="sidebar">
       <a class="brand" href="index.html">Research Article<br>Repository</a>
       <p class="menu-title">Menu</p>
-      <nav class="sidebar-nav" aria-label="Main navigation" data-app-navigation>
+      <nav class="sidebar-nav" aria-label="Main navigation">
+        <a class="active" aria-current="page" href="dashboard.html">Dashboard</a>
+        <a href="index.html">Search Articles</a>
+        <a href="articleEditor.html">Manage Content <small>(mock)</small></a>
+        <span class="disabled-nav">Reading List (planned)</span>
       </nav>
       <p class="sidebar-foot">Statistics from Backend API</p>
     </aside>
 
     <main class="dashboard-main">
-    <div data-navigation-notice hidden role="status" aria-live="polite">
-    </div>
-    <header class="page-header">
+      <header class="page-header">
         <div>
           <h1>Article Statistics Dashboard</h1>
           <p>Overview of research publications</p>
