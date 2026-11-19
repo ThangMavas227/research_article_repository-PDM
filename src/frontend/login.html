@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login | Research Article Repository</title>
+
+    <link rel="stylesheet" href="./login.css">
+    <script src="./login.js" defer></script>
+</head>
+
+<body>
+<main class="login-page">
+    <section class="login-card" aria-labelledby="login-title">
+
+        <div class="brand-icon" aria-hidden="true">📚</div>
+
+        <h1 id="login-title">Research Article Repository</h1>
+        <p class="subtitle">Sign in to your account</p>
+
+        <form id="login-form" novalidate>
+
+            <!-- Username -->
+            <div class="form-group">
+                <label for="username">Username</label>
+
+                <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="Enter your username"
+                        autocomplete="username"
+                        required
+                        aria-describedby="username-error"
+                >
+
+                <span
+                        class="field-error"
+                        id="username-error"
+                ></span>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label for="password">Password</label>
+
+                <div class="password-wrapper">
+
+                    <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                            aria-describedby="password-error"
+                    >
+
+                    <!-- Show / Hide Password -->
+                    <button
+                            type="button"
+                            id="toggle-password"
+                            class="toggle-password"
+                            aria-label="Show password"
+                            aria-pressed="false"
+                    >
+                        <svg
+                                id="toggle-password-icon"
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                        >
+                            <path
+                                    id="toggle-password-icon-path"
+                                    d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"
+                            ></path>
+
+                            <circle
+                                    id="toggle-password-icon-circle"
+                                    cx="12"
+                                    cy="12"
+                                    r="3"
+                            ></circle>
+                        </svg>
+                    </button>
+
+                </div>
+
+                <span
+                        class="field-error"
+                        id="password-error"
+                ></span>
+            </div>
+
+            <!-- Form Message -->
+            <div
+                    id="form-message"
+                    role="status"
+                    aria-live="polite"
+            ></div>
+
+            <!-- Login Button -->
+            <button
+                    type="submit"
+                    id="login-button"
+                    class="login-button"
+            >
+                Sign In
+            </button>
+
+        </form>
+
+        <!-- Back to Browse -->
+        <a href="./index.html" class="back-link">
+            ← Back to Browse Articles
+        </a>
+
+    </section>
+</main>
+</body>
+</html>

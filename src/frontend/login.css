@@ -1,0 +1,207 @@
+
+:root {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #1c2d4a;
+    background: #f1f4f9;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+}
+
+/* Login Page Layout */
+.login-page {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+}
+
+/* Login Card */
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 36px;
+    border-radius: 16px;
+    background: white;
+    box-shadow: 0 10px 35px rgba(20, 40, 80, 0.1);
+}
+
+/* Branding */
+.brand-icon {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 14px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 24px;
+    line-height: 1.3;
+    text-align: center;
+}
+
+.subtitle {
+    margin: 12px 0 30px;
+    text-align: center;
+    color: #66758b;
+    font-size: 14px;
+}
+
+/* Form Fields */
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #ccd5e2;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 14px;
+    outline: none;
+}
+
+input:focus-visible {
+    border-color: #2858c8;
+    box-shadow: 0 0 0 3px rgba(40, 88, 200, 0.12);
+}
+
+input[aria-invalid="true"] {
+    border-color: #c92a2a;
+}
+
+/* Password Input */
+.password-wrapper {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.password-wrapper input {
+    padding-right: 52px;
+}
+
+/* Eye Icon Button */
+.toggle-password {
+    position: absolute;
+    right: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    color: #2858c8;
+    cursor: pointer;
+    padding: 0;
+    border-radius: 8px;
+}
+
+.toggle-password:hover {
+    background: rgba(40, 88, 200, 0.08);
+}
+
+.toggle-password svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+}
+
+/* Validation Messages */
+.field-error {
+    display: block;
+    color: #c92a2a;
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+.field-error:empty,
+#form-message:empty {
+    display: none;
+}
+
+#form-message {
+    margin-bottom: 16px;
+    padding: 12px;
+    border-radius: 8px;
+    background: #fff2f0;
+    color: #aa2424;
+    font-size: 13px;
+}
+
+/* Sign In Button */
+.login-button {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 8px;
+    background: #2858c8;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.login-button:hover {
+    background: #1d46a7;
+}
+
+.login-button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+/* Keyboard Focus */
+.login-button:focus-visible,
+.toggle-password:focus-visible,
+.back-link:focus-visible {
+    outline: 3px solid #8badff;
+    outline-offset: 3px;
+}
+
+/* Back to Browse */
+.back-link {
+    display: block;
+    margin-top: 24px;
+    text-align: center;
+    text-decoration: none;
+    color: #2858c8;
+    font-size: 14px;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .login-card {
+        padding: 26px 20px;
+    }
+
+    h1 {
+        font-size: 21px;
+    }
+}
+
+/* Hide default password reveal icon in Microsoft Edge */
+#password::-ms-reveal,
+#password::-ms-clear {
+    display: none;
+}
