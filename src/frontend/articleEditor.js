@@ -1,153 +1,298 @@
-/* Manage Content: real API-backed read-only listing until CRUD endpoints exist. */
+/* Admin article create (POST) through the real Spring Boot API. */
 (() => {
-  'use strict';
-   if (!window.RARAuth || window.RARAuth.getRole() !== 'admin') return;
+  "use strict";
+  if (!window.RARAuth || window.RARAuth.getRole() !== "admin") return;
+
   const $ = id => document.getElementById(id);
   const PAGE_SIZE = 5;
-  const state = { articles: [], authors: [], tab: 'articles', page: 1 };
+  const state = { articles: [], authors: [], tab: "articles", page: 1, selectedAuthors: [] };
+  const saveButton = $("save-article");
 
-  function message(text, isError = false) {
-    const el = $('feedback');
-    el.textContent = text;
-    el.className = `feedback ${isError ? 'error' : 'success'}`;
-    el.hidden = false;
+  function feedback(text, error = false) {
+    const element = $("feedback");
+    element.textContent = text;
+    element.className = `feedback ${error ? "error" : "success"}`;
+    element.hidden = false;
+  }
+
+  async function readJson(response) {
+    return response.json().catch(() => ({}));
+  }
+
+  async function verifyAdmin() {
+    const session = window.RARAuth.getSession();
+    if (!session?.token) throw new Error("Please log in as Admin.");
+    const response = await fetch(`${window.APP_CONFIG.AUTH_BASE_URL}/api/auth/me`, {
+      headers: { Authorization: `Bearer ${session.token}` }
+    });
+    if (response.status === 401 || response.status === 403) {
+      window.RARAuth.clearSession();
+      window.location.replace("login.html");
+      throw new Error("Session expired. Please log in again.");
+    }
+    if (!response.ok) throw new Error(`Cannot verify Admin session (HTTP ${response.status}).`);
+    const user = await readJson(response);
+    if (user.role !== "admin") {
+      window.location.replace("index.html");
+      throw new Error("Only Admin can manage articles.");
+    }
+    return session.token;
   }
 
   async function fetchArticles() {
     const items = [];
     let totalPages = 1;
     let totalItems = 0;
-    const pageSize = 100; // Current backend maximum.
+    const size = 100;
     for (let page = 1; page <= totalPages; page++) {
-      const url = new URL(window.APP_CONFIG.API_URL, window.location.href);
-      url.searchParams.set('page', String(page));
-      url.searchParams.set('size', String(pageSize));
-      const response = await fetch(url, { headers: { Accept: 'application/json' } });
-      if (!response.ok) throw new Error(`Backend returned HTTP ${response.status}.`);
-      const data = await response.json();
-      if (!data || !Array.isArray(data.items) ||
-          !Number.isInteger(data.totalPages) || data.totalPages < 0 ||
-          !Number.isInteger(data.totalItems) || data.totalItems < 0) {
-        throw new Error('Unexpected API response format.');
+      const url = new URL(window.APP_CONFIG.API_URL);
+      url.searchParams.set("page", String(page));
+      url.searchParams.set("size", String(size));
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Cannot load articles (HTTP ${response.status}).`);
+      const data = await readJson(response);
+      if (!data || !Array.isArray(data.items) || !Number.isInteger(data.totalPages) ||
+          !Number.isInteger(data.totalItems)) {
+        throw new Error("Unexpected article list response.");
       }
-      if (page === 1) {
-        totalPages = data.totalPages;
-        totalItems = data.totalItems;
-      }
+      if (page === 1) { totalPages = data.totalPages; totalItems = data.totalItems; }
       items.push(...data.items);
     }
-    if (items.length !== totalItems) throw new Error('Backend response has inconsistent pagination totals.');
+    if (items.length !== totalItems) throw new Error("Article pagination totals do not match.");
     return items;
   }
 
-  function filtered() {
-    const q = $('record-search').value.trim().toLocaleLowerCase();
-    const data = state.tab === 'articles' ? state.articles : state.authors;
-    if (!q) return data;
-    return data.filter(item => (state.tab === 'articles'
-      ? [item.id, item.title, item.doi, item.year,
-          ...(Array.isArray(item.authors) ? item.authors.map(a => a.name) : [])]
-      : [item.id, item.name]).some(value => String(value ?? '').toLocaleLowerCase().includes(q)));
+  function extractAuthors(articles) {
+    const map = new Map();
+    for (const article of articles) {
+      for (const author of (article.authors || [])) {
+        if (author?.id && author?.name) map.set(author.id, { id: author.id, name: author.name });
+      }
+    }
+    return [...map.values()].sort((a,b) => a.name.localeCompare(b.name));
   }
 
-  function line(label, value) {
-    const p = document.createElement('p');
-    const strong = document.createElement('strong');
+  function populateEditions() {
+    const select = $("article-edition");
+    const previous = select.value;
+    select.replaceChildren(new Option("Choose a venue / edition", ""));
+    const unique = new Map();
+    for (const article of state.articles) {
+      if (!article.venueId || !Number.isInteger(article.editionNumber)) continue;
+      const key = `${article.venueId}::${article.editionNumber}`;
+      if (!unique.has(key)) unique.set(key, article);
+    }
+    for (const article of [...unique.values()].sort((a,b) =>
+      String(a.venueName || a.venueId).localeCompare(String(b.venueName || b.venueId)) ||
+      a.editionNumber - b.editionNumber)) {
+      const option = new Option(
+        `${article.venueName || article.venueId} — ${article.venueId} / Edition ${article.editionNumber} (${article.year})`,
+        `${article.venueId}::${article.editionNumber}`
+      );
+      select.add(option);
+    }
+    if ([...select.options].some(opt => opt.value === previous)) select.value = previous;
+  }
+
+  function renderAuthors() {
+    const parent = $("author-picker");
+    parent.replaceChildren();
+    const term = $("author-search").value.trim().toLocaleLowerCase();
+    const items = state.authors.filter(author =>
+      state.selectedAuthors.includes(author.id) ||
+      (term && `${author.name} ${author.id}`.toLocaleLowerCase().includes(term))
+    );
+    for (const author of items) {
+      const label = document.createElement("label");
+      label.className = "author-option";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = state.selectedAuthors.includes(author.id);
+      checkbox.addEventListener("change", () => {
+        state.selectedAuthors = checkbox.checked
+          ? [...state.selectedAuthors, author.id]
+          : state.selectedAuthors.filter(id => id !== author.id);
+        renderAuthors();
+      });
+      const text = document.createElement("span");
+      text.textContent = `${author.name} (${author.id})`;
+      label.append(checkbox, text);
+      parent.appendChild(label);
+    }
+    if (!items.length) {
+      const empty = document.createElement("p");
+      empty.className = "author-picker-empty";
+      empty.textContent = term ? "No matching authors in loaded articles." : "Search authors above, or enter a new author name.";
+      parent.appendChild(empty);
+    }
+    $("author-selection-status").textContent = `${state.selectedAuthors.length} existing author(s) selected, in selection order.`;
+  }
+
+  function filtered() {
+    const term = $("record-search").value.trim().toLocaleLowerCase();
+    const data = state.tab === "articles" ? state.articles : state.authors;
+    return data.filter(item => !term || (state.tab === "articles"
+      ? [item.id, item.title, item.doi, item.year, ...(item.authors || []).map(a=>a.name)]
+      : [item.id,item.name]
+    ).some(value => String(value ?? "").toLocaleLowerCase().includes(term)));
+  }
+
+  function addLine(parent, label, value) {
+    const p = document.createElement("p");
+    const strong = document.createElement("strong");
     strong.textContent = `${label}: `;
-    p.append(strong, document.createTextNode(String(value ?? '—')));
-    return p;
+    p.append(strong, document.createTextNode(String(value ?? "—")));
+    parent.appendChild(p);
   }
 
   function render() {
     const items = filtered();
-    const pages = Math.ceil(items.length / PAGE_SIZE);
-    state.page = Math.max(1, Math.min(state.page, Math.max(1, pages)));
-    const start = (state.page - 1) * PAGE_SIZE;
-    const container = $('record-list');
-    container.replaceChildren();
-    if (items.length === 0) {
-      const empty = document.createElement('p');
-      empty.className = 'empty-result';
-      empty.textContent = 'No matching records.';
-      container.appendChild(empty);
-    }
-    for (const item of items.slice(start, start + PAGE_SIZE)) {
-      const card = document.createElement('article');
-      card.className = 'record-card';
-      const h4 = document.createElement('h4');
-      if (state.tab === 'articles') {
-        const link = document.createElement('a');
+    const pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+    state.page = Math.max(1, Math.min(state.page, pages));
+    const parent = $("record-list");
+    parent.replaceChildren();
+    for (const item of items.slice((state.page-1)*PAGE_SIZE,state.page*PAGE_SIZE)) {
+      const card = document.createElement("article");
+      card.className = "record-card";
+      const heading = document.createElement("h4");
+      if (state.tab === "articles") {
+        const link = document.createElement("a");
         link.href = `articleDetail.html?id=${encodeURIComponent(String(item.id))}`;
         link.textContent = item.title;
-        link.addEventListener('click', () => {
-          try { sessionStorage.setItem(window.APP_CONFIG.SELECTED_ARTICLE_KEY, JSON.stringify(item)); }
-          catch (_) { /* Detail page can fetch again. */ }
-        });
-        h4.appendChild(link);
-        card.append(h4, line('Article ID', item.id), line('DOI', item.doi),
-          line('Year', item.year),
-          line('Authors', Array.isArray(item.authors) ? item.authors.map(a => a.name).join(', ') || 'Unknown' : 'Unavailable'));
+        heading.append(link);
+        card.appendChild(heading);
+        addLine(card,"Article ID",item.id);
+        addLine(card,"DOI",item.doi);
+        addLine(card,"Year",item.year);
+        addLine(card,"Authors",(item.authors || []).map(a=>a.name).join(", "));
       } else {
-        h4.textContent = item.name;
-        card.append(h4, line('Author ID', item.id));
+        heading.textContent = item.name;
+        card.appendChild(heading);
+        addLine(card,"Author ID",item.id);
       }
-      container.appendChild(card);
+      parent.appendChild(card);
     }
-    $('record-pagination').hidden = pages <= 1;
-    $('page-count').textContent = `Page ${state.page} / ${Math.max(1, pages)}`;
-    $('previous-page').disabled = state.page <= 1;
-    $('next-page').disabled = state.page >= pages;
+    if (!items.length) {
+      const empty = document.createElement("p");
+      empty.className = "empty-result";
+      empty.textContent = "No matching records.";
+      parent.appendChild(empty);
+    }
+    $("record-pagination").hidden = pages <= 1;
+    $("page-count").textContent = `Page ${state.page} / ${pages}`;
+    $("previous-page").disabled = state.page <= 1;
+    $("next-page").disabled = state.page >= pages;
   }
 
   function showTab(tab) {
     state.tab = tab;
     state.page = 1;
-    $('record-search').value = '';
-    $('articles-tab').setAttribute('aria-selected', String(tab === 'articles'));
-    $('authors-tab').setAttribute('aria-selected', String(tab === 'authors'));
-    $('list-heading').textContent = tab === 'articles' ? 'Articles' : 'Authors appearing in articles';
-    $('list-description').textContent = tab === 'articles'
-      ? 'Browse records from MySQL. Select an article to open its details.'
-      : 'This list includes authors attached to returned articles, not all authors in the database.';
+    $("record-search").value = "";
+    $("articles-tab").setAttribute("aria-selected", String(tab === "articles"));
+    $("authors-tab").setAttribute("aria-selected", String(tab === "authors"));
+    $("list-heading").textContent = tab === "articles" ? "Articles" : "Authors appearing in articles";
+    $("list-description").textContent = tab === "articles" ? "Articles from MySQL." : "Only authors returned with current articles, not the full Author table.";
+    $("add-record").hidden = tab !== "articles";
+    $("article-form-panel").hidden = tab !== "articles";
     render();
   }
 
   async function load() {
-    $('reload-records').disabled = true;
-    message('Loading records from Backend API...');
+    $("reload-records").disabled = true;
+    feedback("Loading data from MySQL...");
     try {
-      const articles = await fetchArticles();
-      const authors = new Map();
-      articles.forEach(article => (Array.isArray(article.authors) ? article.authors : []).forEach(author => {
-        if (author && author.id != null && typeof author.name === 'string') {
-          authors.set(String(author.id), { id: String(author.id), name: author.name });
-        }
-      }));
-      state.articles = articles;
-      state.authors = [...authors.values()].sort((a, b) => a.name.localeCompare(b.name));
-      state.page = 1;
-      $('article-count').textContent = String(state.articles.length);
-      $('author-count').textContent = String(state.authors.length);
-      message(`Loaded ${state.articles.length} articles from the Backend API.`);
+      state.articles = await fetchArticles();
+      state.authors = extractAuthors(state.articles);
+      $("article-count").textContent = String(state.articles.length);
+      $("author-count").textContent = String(state.authors.length);
+      populateEditions();
+      renderAuthors();
       render();
+      feedback(`Loaded ${state.articles.length} articles.`);
     } catch (error) {
-      state.articles = [];
-      state.authors = [];
-      $('article-count').textContent = '0';
-      $('author-count').textContent = '0';
-      render();
-      message(`Could not load records. Check Spring Boot/MySQL and the API URL. ${error.message}`, true);
-      console.error('[Manage Content]', error);
+      feedback(`Could not load records: ${error.message}`, true);
+      console.error("[Manage Content]", error);
     } finally {
-      $('reload-records').disabled = false;
+      $("reload-records").disabled = false;
     }
   }
 
-  $('articles-tab').addEventListener('click', () => showTab('articles'));
-  $('authors-tab').addEventListener('click', () => showTab('authors'));
-  $('record-search').addEventListener('input', () => { state.page = 1; render(); });
-  $('previous-page').addEventListener('click', () => { if (state.page > 1) { state.page--; render(); } });
-  $('next-page').addEventListener('click', () => { state.page++; render(); });
-  $('reload-records').addEventListener('click', load);
-  load();
+  function resetForm() {
+    $("article-form").reset();
+    state.selectedAuthors = [];
+    $("author-search").value = "";
+    renderAuthors();
+    $("article-title").focus();
+  }
+
+  function makeCreateBody() {
+    const title = $("article-title").value.trim();
+    const doi = $("article-doi").value.trim();
+    const startPage = Number($("article-start-page").value);
+    const edition = $("article-edition").value;
+    const newAuthor = $("new-author-name").value.trim();
+    if (!title) throw new Error("Title is required.");
+    if (title.length > 255) throw new Error("Title must be at most 255 characters.");
+    if (!/^10\.[0-9]{4,9}\/.+/.test(doi) || doi.length > 100) throw new Error("Invalid DOI format.");
+    if (!Number.isSafeInteger(startPage) || startPage < 1) throw new Error("Start Page must be a positive integer.");
+    if (!edition) throw new Error("Choose a Venue / Edition.");
+    const [venueId, editionText] = edition.split("::");
+    const editionNumber = Number(editionText);
+    if (!venueId || !Number.isSafeInteger(editionNumber)) throw new Error("Invalid edition selected.");
+    const authors = state.selectedAuthors.map(id => ({ id }));
+    if (newAuthor) authors.push({ name: newAuthor });
+    if (!authors.length) throw new Error("Select an existing author or enter a new author name.");
+    return { title, doi, abstract: $("article-abstract").value.trim() || null,
+      startPage, venueId, editionNumber, authors };
+  }
+
+  $("article-form").addEventListener("submit", async event => {
+    event.preventDefault();
+    if (saveButton.disabled) return;
+    let body;
+    try { body = makeCreateBody(); }
+    catch (error) { feedback(error.message, true); return; }
+    saveButton.disabled = true;
+    saveButton.textContent = "Saving...";
+    try {
+      const token = await verifyAdmin();
+      const response = await fetch(window.APP_CONFIG.API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body)
+      });
+      if (!response.ok) {
+        const data = await readJson(response);
+        if (response.status === 401) {
+          window.RARAuth.clearSession();
+          window.location.replace("login.html");
+        }
+        throw new Error(data.error || `Add Article failed (HTTP ${response.status}).`);
+      }
+      const created = await readJson(response);
+      resetForm();
+      await load();
+      feedback(`Article created in MySQL: ${created.id || "success"}.`);
+    } catch (error) {
+      feedback(error.message || "Could not save article.", true);
+    } finally {
+      saveButton.disabled = false;
+      saveButton.textContent = "Save New Article";
+    }
+  });
+
+  $("articles-tab").addEventListener("click", () => showTab("articles"));
+  $("authors-tab").addEventListener("click", () => showTab("authors"));
+  $("record-search").addEventListener("input", () => { state.page = 1; render(); });
+  $("author-search").addEventListener("input", renderAuthors);
+  $("previous-page").addEventListener("click", () => { if (state.page>1) { state.page--;render(); } });
+  $("next-page").addEventListener("click", () => { state.page++;render(); });
+  $("reload-records").addEventListener("click", load);
+  $("cancel-article").addEventListener("click", resetForm);
+  $("add-record").addEventListener("click", resetForm);
+
+  (async () => {
+    try { await verifyAdmin(); await load(); }
+    catch (error) { feedback(error.message || "Cannot verify session.", true); }
+  })();
 })();

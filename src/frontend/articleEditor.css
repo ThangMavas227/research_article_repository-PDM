@@ -88,3 +88,7 @@ header nav a[aria-current="page"] { font-weight: 700; text-decoration: underline
   .record-search { width: 100%; }
   .demo-footer { text-align: left; }
 }
+
+/* Add Article: select uses the same style as text fields. */
+.edit-form select { display:block; width:100%; min-width:0; padding:11px 12px; border:1px solid #d1d5db; border-radius:6px; background:white; font:inherit; font-size:14px; }
+.edit-form select:focus-visible { outline: 3px solid #93c5fd; outline-offset:2px; }
