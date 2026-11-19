@@ -8,7 +8,7 @@
 
     <title>Research Article Repository</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Shared API URL and default Mock/API mode. -->
+    <!-- Shared backend API URL. -->
     <script src="config.js"></script>
 </head>
 
@@ -55,24 +55,7 @@
             <button type="button" id="clear-filters" class="secondary-btn">Clear</button>
         </form>
 
-        <!-- Starts in Mock mode while USE_API=false; switch manually for integration tests. -->
-        <div class="data-controls">
-            <label for="data-mode">Data source:</label>
-            <select id="data-mode">
-                <option value="api">Backend API</option>
-                <option value="mock">Mock demo</option>
-            </select>
-            <label for="mock-scenario" id="mock-scenario-label" hidden>
-                Mock state:
-                <select id="mock-scenario">
-                    <option value="normal">Normal</option>
-                    <option value="empty">Empty</option>
-                    <option value="error">Error</option>
-                </select>
-            </label>
-        </div>
-
-        <!-- Article Results -->
+<!-- Article Results -->
         <section aria-labelledby="results-title">
             <h3 id="results-title">Articles</h3>
 
@@ -99,8 +82,6 @@
     </section>
 </main>
 
-<script src="search.js"></script>
-<script src="mockData.js"></script>
 <script src="browse.js"></script>
 </body>
 </html>

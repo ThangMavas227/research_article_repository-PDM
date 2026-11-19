@@ -1,12 +1,7 @@
-/* Article Detail: API mode uses the fields returned by GET /api/articles:
- * {id, title, year, doi, abstract, authors, references, citedBy}.
- * Mock mode keeps its existing sample-data behavior.
- */
+/* Article Detail: backend data from GET /api/articles. */
 const params = new URLSearchParams(window.location.search);
 const articleId = params.get('id');
-const mode = window.getArticleMode();
 const detailEl = document.getElementById('articleDetail');
-const articles = mode === 'mock' ? (window.MOCK_ARTICLES || []) : [];
 
 function cachedArticle() {
     try {
@@ -86,70 +81,22 @@ function renderApiCitations(items, containerId, emptyTitle, emptyMessage) {
     });
 }
 
-// Preserve the pre-existing mock-mode citation UI.
-function renderMockCitations(ids, containerId) {
-    const relatedArticles = ids.map(id => articles.find(a => a.id === id)).filter(Boolean);
-    if (relatedArticles.length === 0) {
-        showCitationState(containerId, 'No citations found',
-            'No citations are recorded for this article in the mock data.');
-        return;
-    }
-    const container = document.getElementById(containerId);
-    container.replaceChildren();
-    relatedArticles.forEach(item => {
-        const row = document.createElement('article');
-        row.className = 'article-row';
-        const title = document.createElement('h3');
-        title.className = 'article-title';
-        const link = document.createElement('a');
-        link.href = `articleDetail.html?id=${encodeURIComponent(item.id)}`;
-        link.textContent = item.title;
-        title.appendChild(link);
-        const meta = document.createElement('div');
-        meta.className = 'article-meta';
-        meta.textContent = `${item.authors.map(a => a.name).join(', ')} (${item.year})`;
-        row.append(title, meta);
-        container.appendChild(row);
-    });
-}
-
 function renderDetail(article) {
     document.getElementById('detail-title').textContent = article.title;
     document.getElementById('detail-authors').textContent =
         article.authors.length ? article.authors.map(a => a.name).join(', ') : 'Unknown author';
     document.getElementById('detail-year').textContent = String(article.year);
 
+    document.getElementById('detail-doi').textContent = article.doi?.trim() || 'Not available';
+    document.getElementById('detail-abstract').textContent = article.abstract?.trim() || 'Abstract not available.';
+    const missing = !Array.isArray(article.references) || !Array.isArray(article.citedBy);
     const note = document.getElementById('detail-api-note');
-    if (mode === 'api') {
-        document.getElementById('detail-doi').textContent = article.doi?.trim() || 'Not available';
-        document.getElementById('detail-abstract').textContent = article.abstract?.trim() || 'Abstract not available.';
-        const missing = !Array.isArray(article.references) || !Array.isArray(article.citedBy);
-        note.hidden = !missing;
-        if (missing) note.textContent = 'The backend response is missing one or more citation fields. Make sure the updated backend is running.';
-        renderApiCitations(article.references, 'references-list',
-            'No references recorded', 'This article has no recorded references.');
-        renderApiCitations(article.citedBy, 'cited-by-list',
-            'No citing articles recorded', 'No articles in the repository currently cite this article.');
-        return;
-    }
-
-    note.hidden = true;
-    const details = window.MOCK_DETAILS || {};
-    const itemDetail = details[article.id];
-    document.getElementById('detail-doi').textContent = itemDetail?.doi || 'Not available';
-    document.getElementById('detail-abstract').textContent = itemDetail?.abstract || 'Abstract not available.';
-    if (!itemDetail || !Array.isArray(itemDetail.references)) {
-        showCitationState('references-list', 'Citation data unavailable',
-            'This article has no citation details in the mock dataset.');
-        showCitationState('cited-by-list', 'Citation data unavailable',
-            'This article has no citation details in the mock dataset.');
-    } else {
-        const citedBy = Object.entries(details)
-            .filter(([, detail]) => Array.isArray(detail.references) && detail.references.includes(article.id))
-            .map(([id]) => id);
-        renderMockCitations(itemDetail.references, 'references-list');
-        renderMockCitations(citedBy, 'cited-by-list');
-    }
+    note.hidden = !missing;
+    if (missing) note.textContent = 'The backend response is missing one or more citation fields. Make sure the updated backend is running.';
+    renderApiCitations(article.references, 'references-list',
+        'No references recorded', 'This article has no recorded references.');
+    renderApiCitations(article.citedBy, 'cited-by-list',
+        'No citing articles recorded', 'No articles in the repository currently cite this article.');
 }
 
 /* The backend currently has no GET /api/articles/{id} endpoint.
@@ -182,14 +129,7 @@ async function initDetail() {
         showMessage('Article not found', 'No article ID was supplied in the URL.');
         return;
     }
-    if (mode === 'mock') {
-        const article = articles.find(a => a.id === articleId);
-        if (!article) showMessage('Article not found', 'The requested article does not exist in the mock dataset.');
-        else renderDetail(article);
-        return;
-    }
-
-    // Existing stored data from the old FE build may lack the newly added fields.
+    // Use only API-backed cached records (separate storage key from older builds).
     let article = cachedArticle();
     if (article && Array.isArray(article.references) && Array.isArray(article.citedBy)) {
         renderDetail(article);

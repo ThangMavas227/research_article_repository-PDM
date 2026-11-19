@@ -26,10 +26,8 @@ function makeArticleLink(article) {
   link.href = `articleDetail.html?id=${encodeURIComponent(String(article.id))}`;
   link.textContent = article.title;
 
-  // Article Detail uses session mode and a cached article. Keep both in sync
-  // when coming from the dashboard's API-backed list.
+  // Cache this real API article for navigation to Article Detail.
   link.addEventListener("click", () => {
-    if (typeof window.setArticleMode === "function") window.setArticleMode("api");
     try {
       const key = window.APP_CONFIG?.SELECTED_ARTICLE_KEY;
       if (key) sessionStorage.setItem(key, JSON.stringify(article));
