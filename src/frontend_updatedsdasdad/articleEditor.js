@@ -5,8 +5,11 @@
   if (!window.RARAuth || window.RARAuth.getRole() !== "admin") return;
 
   const $ = id => document.getElementById(id);
-  const PAGE_SIZE = 5;
+  // Wider tab panels can display more cards without leaving unused desktop space.
+  const PAGE_SIZE_ARTICLES = 6;
+  const PAGE_SIZE_AUTHORS = 12;
   const state = { articles: [], authors: [], tab: "articles", page: 1, selectedAuthors: [] };
+  document.body.dataset.activeTab = state.tab;
   const saveButton = $("save-article");
   let editingArticleId = null;
   let deletingArticleId = null;
@@ -133,8 +136,8 @@
 
   function filtered() {
     const term = $("record-search").value.trim().toLocaleLowerCase();
-    const data = state.tab === "articles" ? state.articles : state.authors;
-    return data.filter(item => !term || (state.tab === "articles"
+    const data = state.tab === "authors" ? state.authors : state.articles;
+    return data.filter(item => !term || (state.tab !== "authors"
             ? [item.id, item.title, item.doi, item.year, ...(item.authors || []).map(a=>a.name)]
             : [item.id,item.name]
     ).some(value => String(value ?? "").toLocaleLowerCase().includes(term)));
@@ -150,11 +153,12 @@
 
   function render() {
     const items = filtered();
-    const pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+    const pageSize = state.tab === "authors" ? PAGE_SIZE_AUTHORS : PAGE_SIZE_ARTICLES;
+    const pages = Math.max(1, Math.ceil(items.length / pageSize));
     state.page = Math.max(1, Math.min(state.page, pages));
     const parent = $("record-list");
     parent.replaceChildren();
-    for (const item of items.slice((state.page-1)*PAGE_SIZE,state.page*PAGE_SIZE)) {
+    for (const item of items.slice((state.page-1)*pageSize,state.page*pageSize)) {
       const card = document.createElement("article");
       card.className = "record-card";
       const heading = document.createElement("h4");
@@ -208,16 +212,36 @@
   }
 
   function showTab(tab) {
+    if (!["articles", "add", "authors"].includes(tab)) return;
     state.tab = tab;
     state.page = 1;
+    document.body.dataset.activeTab = tab;
     $("record-search").value = "";
-    $("articles-tab").setAttribute("aria-selected", String(tab === "articles"));
-    $("authors-tab").setAttribute("aria-selected", String(tab === "authors"));
-    $("list-heading").textContent = tab === "articles" ? "Articles" : "Authors appearing in articles";
-    $("list-description").textContent = tab === "articles" ? "Articles from MySQL." : "Only authors returned with current articles, not the full Author table.";
-    $("add-record").hidden = tab !== "articles";
-    $("article-form-panel").hidden = tab !== "articles";
-    render();
+
+    const tabIds = { articles: "articles-tab", add: "add-article-tab", authors: "authors-tab" };
+    for (const [name, id] of Object.entries(tabIds)) {
+      const selected = name === tab;
+      $(id).setAttribute("aria-selected", String(selected));
+      $(id).tabIndex = selected ? 0 : -1;
+    }
+
+    // Each tab takes the full container width. The shared records panel is
+    // reused for Articles and Referenced Authors without duplicating list logic.
+    $("records-panel").hidden = tab === "add";
+    $("article-form-panel").hidden = tab !== "add";
+    $("records-panel").setAttribute("aria-labelledby", tab === "authors" ? "authors-tab" : "articles-tab");
+
+    if (tab !== "add") {
+      $("list-heading").textContent = tab === "articles" ? "Articles" : "Authors appearing in articles";
+      $("list-description").textContent = tab === "articles"
+          ? "Articles from MySQL."
+          : "Only authors returned with current articles, not the full Author table.";
+      $("record-search").placeholder = tab === "articles"
+          ? "Search article or author..."
+          : "Search author name or ID...";
+      $("add-record").hidden = tab !== "articles";
+      render();
+    }
   }
 
   async function load() {
@@ -240,7 +264,7 @@
     }
   }
 
-  function resetForm() {
+  function resetForm({ focus = true } = {}) {
     editingArticleId = null;
     $("article-form").reset();
     state.selectedAuthors = [];
@@ -251,7 +275,7 @@
     saveButton.disabled = false;
     saveButton.textContent = "Save New Article";
     renderAuthors();
-    $("article-title").focus();
+    if (focus) $("article-title").focus();
   }
 
   function showEditForm(article) {
@@ -293,6 +317,9 @@
     // Enable Save Changes for PUT integration
     saveButton.disabled = false;
     saveButton.textContent = "Save Changes";
+
+    // Editing uses the same dedicated full-width form tab.
+    showTab("add");
 
     // Scroll to Edit Form
     $("article-form-panel").scrollIntoView({
@@ -352,7 +379,7 @@
 
       // Reset Edit form if its article was deleted.
       if (editingArticleId === article.id) {
-        resetForm();
+        resetForm({ focus: false });
       }
 
       // Reload data from MySQL.
@@ -491,8 +518,9 @@
       }
 
       // Successful POST or PUT.
-      resetForm();
+      resetForm({ focus: false });
       await load();
+      showTab("articles");
 
       feedback(
           isEditing
@@ -516,7 +544,26 @@
 
   // ---------- Event Listeners ----------
   $("articles-tab").addEventListener("click", () => showTab("articles"));
+  $("add-article-tab").addEventListener("click", () => {
+    showTab("add");
+    resetForm();
+  });
   $("authors-tab").addEventListener("click", () => showTab("authors"));
+
+  // Arrow/Home/End navigate the tabs with keyboard as well as mouse.
+  const tabs = [$("articles-tab"), $("add-article-tab"), $("authors-tab")];
+  $("articles-tab").parentElement.addEventListener("keydown", event => {
+    const index = tabs.indexOf(document.activeElement);
+    if (index === -1) return;
+    const next = event.key === "ArrowRight" ? (index + 1) % tabs.length
+        : event.key === "ArrowLeft" ? (index + tabs.length - 1) % tabs.length
+        : event.key === "Home" ? 0
+        : event.key === "End" ? tabs.length - 1 : -1;
+    if (next < 0) return;
+    event.preventDefault();
+    tabs[next].click();
+    tabs[next].focus();
+  });
 
   $("record-search").addEventListener("input", () => {
     state.page = 1;
@@ -538,8 +585,11 @@
   });
 
   $("reload-records").addEventListener("click", load);
-  $("cancel-article").addEventListener("click", resetForm);
-  $("add-record").addEventListener("click", resetForm);
+  $("cancel-article").addEventListener("click", () => resetForm());
+  $("add-record").addEventListener("click", () => {
+    showTab("add");
+    resetForm();
+  });
 
   // ---------- Initialize ----------
   (async () => {

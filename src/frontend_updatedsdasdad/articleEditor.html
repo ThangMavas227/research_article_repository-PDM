@@ -529,6 +529,32 @@ button:disabled { cursor: not-allowed; opacity: .58; }
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
 
+
+/* Manage Content: three genuinely separate full-width views, including Referenced Authors. */
+.page-editor .editor-layout { display: block; width: 100%; min-width: 0; }
+.page-editor .editor-panel { width: 100%; min-width: 0; }
+.page-editor .tab-switch { display: flex; flex-wrap: wrap; width: fit-content; max-width: 100%; }
+.page-editor .tab-btn { min-height: 44px; white-space: nowrap; }
+.page-editor .tab-btn[aria-selected='true'] { box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+.page-editor .list-panel .record-search { max-width: 680px; }
+.page-editor .list-panel .panel-description { max-width: 900px; }
+.page-editor[data-active-tab='articles'] .record-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.page-editor[data-active-tab='authors'] .record-list { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.page-editor[data-active-tab='authors'] .record-card { min-height: 105px; }
+.page-editor .edit-panel .edit-form { width: 100%; max-width: 970px; }
+.page-editor .edit-panel .form-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 200px); }
+@media (max-width: 980px) {
+  .page-editor[data-active-tab='authors'] .record-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  .page-editor[data-active-tab='articles'] .record-list,
+  .page-editor[data-active-tab='authors'] .record-list { grid-template-columns: minmax(0, 1fr); }
+  .page-editor .tab-switch { width: 100%; }
+  .page-editor .tab-btn { flex: 1 1 auto; }
+  .page-editor .edit-panel .form-grid { grid-template-columns: minmax(0, 1fr); }
+  .page-editor .editor-toolbar #reload-records { width: 100%; }
+}
+
 </style><meta content="option-a-inline-2026-11-20" name="rar-ui-theme"/></head>
 <body class="page-editor"><header class="site-header">
 <a aria-label="Research Article Repository – home" class="site-brand" href="index.html">
@@ -544,14 +570,15 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 </section>
 <div aria-live="polite" class="feedback" hidden="" id="feedback" role="status"></div>
 <div class="editor-toolbar">
-<div aria-label="Content type" class="tab-switch" role="tablist">
-<button aria-selected="true" class="tab-btn" id="articles-tab" role="tab" type="button">Articles <span class="tab-count" id="article-count"></span></button>
-<button aria-selected="false" class="tab-btn" id="authors-tab" role="tab" type="button">Referenced Authors <span class="tab-count" id="author-count"></span></button>
+<div aria-label="Manage content sections" class="tab-switch" role="tablist">
+<button aria-controls="records-panel" aria-selected="true" class="tab-btn" id="articles-tab" role="tab" tabindex="0" type="button">Articles <span class="tab-count" id="article-count"></span></button>
+<button aria-controls="article-form-panel" aria-selected="false" class="tab-btn" id="add-article-tab" role="tab" tabindex="-1" type="button">Add Article</button>
+<button aria-controls="records-panel" aria-selected="false" class="tab-btn" id="authors-tab" role="tab" tabindex="-1" type="button">Referenced Authors <span class="tab-count" id="author-count"></span></button>
 </div>
 <button class="btn btn-secondary" id="reload-records" type="button">Reload from MySQL</button>
 </div>
 <div class="editor-layout">
-<section aria-labelledby="list-heading" class="editor-panel list-panel">
+<section aria-labelledby="articles-tab" class="editor-panel list-panel" id="records-panel" role="tabpanel" tabindex="0">
 <div class="panel-header">
 <h3 id="list-heading">Articles</h3>
 <button class="btn btn-primary btn-small" id="add-record" type="button">+ Add Article</button>
@@ -566,7 +593,7 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 <button class="btn btn-secondary btn-small" id="next-page" type="button">Next</button>
 </div>
 </section>
-<section aria-labelledby="article-form-heading" class="editor-panel edit-panel" id="article-form-panel">
+<section aria-labelledby="add-article-tab" class="editor-panel edit-panel" hidden="" id="article-form-panel" role="tabpanel" tabindex="0">
 <div class="panel-header">
 <h3 id="article-form-heading">Add Article</h3>
 <span class="record-id">New record — ID assigned by Backend</span>
