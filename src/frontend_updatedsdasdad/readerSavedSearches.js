@@ -1,4 +1,3 @@
-/* My Saved Searches page: real GET/POST/DELETE against the Reader's API. */
 (function () {
     'use strict';
 
@@ -36,7 +35,6 @@
 
     function readableDate(value) {
         if (!value || typeof value !== 'string') return 'Unknown';
-        // LocalDateTime has no time-zone suffix; show it as stored, not UTC.
         return value.replace('T', ' ').slice(0, 16);
     }
 

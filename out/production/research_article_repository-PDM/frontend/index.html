@@ -8,7 +8,6 @@
 
     <title>Research Article Repository</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Shared Backend API configuration. -->
     <script src="config.js"></script>
 </head>
 
@@ -25,7 +24,6 @@
         <h2>Browse Research Articles</h2>
         <p>Explore academic research articles.</p>
 
-        <!-- Search Form -->
         <form id="browse-filter-form" role="search">
             <label for="keyword">
                 Search articles
@@ -53,22 +51,18 @@
             <button type="button" id="clear-filters" class="secondary-btn">Clear</button>
         </form>
 
-        <!-- Article Results -->
         <section aria-labelledby="results-title">
             <h3 id="results-title">Articles</h3>
 
             <p id="count-pill"></p>
             <p id="page-label"></p>
 
-            <!-- Loading / Empty / Error -->
             <div id="status-region"
                 role="status"
                 aria-live="polite"></div>
 
-            <!-- Article list -->
             <div id="article-list"></div>
 
-            <!-- Pagination -->
             <div id="pagination" hidden>
                 <button type="button" id="prev-btn">Previous</button>
 

@@ -1,6 +1,3 @@
-/* Article Detail: always retrieve the latest record from the Spring Boot API.
- * Do not read sessionStorage: previously selected articles may be stale after Admin edits.
- */
 const params = new URLSearchParams(window.location.search);
 const articleId = params.get('id');
 const detailEl = document.getElementById('articleDetail');
@@ -33,8 +30,6 @@ function showCitationState(containerId, title, message) {
     container.appendChild(box);
 }
 
-// New API: references/citedBy already contain the related article's id and title.
-// A real empty array is not the same as a missing field in an older API response.
 function renderApiCitations(items, containerId, emptyTitle, emptyMessage) {
     if (!Array.isArray(items)) {
         showCitationState(containerId, 'Citation data unavailable',
@@ -55,7 +50,6 @@ function renderApiCitations(items, containerId, emptyTitle, emptyMessage) {
         const title = document.createElement('h3');
         title.className = 'article-title';
         const link = document.createElement('a');
-        // The target page always retrieves a fresh article record from the API.
         link.href = `articleDetail.html?id=${encodeURIComponent(String(item.id))}`;
         link.textContent = item.title;
         title.appendChild(link);
@@ -85,12 +79,6 @@ function renderDetail(article) {
         'No citing articles recorded', 'No articles in the repository currently cite this article.');
 }
 
-/* The backend currently has no GET /api/articles/{id} endpoint.
- * For a direct URL / a clicked citation, look up the ID in paginated list results.
- * Use size=100 (the controller's maximum) to minimize requests; do not assume that
- * the article lives on the first page. A dedicated detail endpoint is preferable
- * if the repository becomes large.
- */
 async function findArticleFromApi(id) {
     const url = new URL(window.APP_CONFIG.API_URL, window.location.href);
     url.searchParams.set('size', '100');
@@ -120,10 +108,8 @@ async function initDetail() {
         return;
     }
 
-    // Show a loading state instead of displaying old article fields during refresh.
     const title = document.getElementById('detail-title');
     if (!title) {
-        // The original markup can be replaced by an error/not-found message.
         window.location.reload();
         return;
     }
@@ -136,7 +122,6 @@ async function initDetail() {
     document.getElementById('detail-api-note').hidden = true;
 
     try {
-        // Always re-fetch, even if a previous visit put this article in sessionStorage.
         const article = await findArticleFromApi(articleId);
         if (requestId !== latestRequestId) return;
         if (!article) {
@@ -152,12 +137,10 @@ async function initDetail() {
     }
 }
 
-// Browser back/forward cache (bfcache) can restore an old DOM without rerunning JS.
 window.addEventListener('pageshow', event => {
     if (event.persisted) window.location.reload();
 });
 
-// If an Admin edited the article in another tab, re-check when this tab becomes visible.
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden) initDetail();
 });

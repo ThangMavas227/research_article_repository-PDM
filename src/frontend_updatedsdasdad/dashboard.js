@@ -1,12 +1,7 @@
 "use strict";
 
-/*
- * Article Statistics Dashboard — data from the existing GET /api/articles endpoint.
- * No new backend endpoint or SQL script is required.
- * The list API includes id, title, year, authors[], references[] and citedBy[].
- */
 const API_URL = window.APP_CONFIG?.API_URL || "http://localhost:8080/api/articles";
-const API_PAGE_SIZE = 100; // Maximum size accepted by the team's current backend.
+const API_PAGE_SIZE = 100; 
 const $ = (id) => document.getElementById(id);
 
 const state = { articles: [], totalItems: 0 };
@@ -26,14 +21,11 @@ function makeArticleLink(article) {
   link.href = `articleDetail.html?id=${encodeURIComponent(String(article.id))}`;
   link.textContent = article.title;
 
-  // Cache this real API article for navigation to Article Detail.
   link.addEventListener("click", () => {
     try {
       const key = window.APP_CONFIG?.SELECTED_ARTICLE_KEY;
       if (key) sessionStorage.setItem(key, JSON.stringify(article));
-    } catch (_) {
-      // Article Detail can still look up the article by id via GET /api/articles.
-    }
+    } catch (_) {}
   });
   return link;
 }
@@ -121,7 +113,6 @@ function renderMostCited(articles) {
   const container = $("most-cited");
   container.replaceChildren();
 
-  // Do not interpret a missing citedBy field as "zero citations".
   if (articles.some((article) => !Array.isArray(article.citedBy))) {
     container.textContent = "Citation data unavailable";
     return;

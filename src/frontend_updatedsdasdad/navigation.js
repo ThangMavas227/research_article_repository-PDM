@@ -1,4 +1,4 @@
-/* Shared navigation / UI session support. The backend must independently enforce permissions. */
+
 (function () {
   "use strict";
 
@@ -22,7 +22,7 @@
       }
       return { token, user: { ...user, role: user.role.toLowerCase() } };
     } catch (_) {
-      return null; // Do not expose privileged UI when stored data is damaged.
+      return null; 
     }
   }
 
@@ -145,7 +145,6 @@
     const role = getRole();
     if (role === "admin") return true;
     if (role === "guest") {
-      // Only a known, same-site page is accepted as the post-login destination.
       window.location.replace("login.html?next=articleEditor.html&reason=admin-required");
     } else {
       window.location.replace("index.html?access=denied");
@@ -180,7 +179,6 @@
         serverConfirmed = true;
       }
     } catch (error) {
-      // Never leave a stale FE session solely because the backend is unavailable.
       console.warn("Server logout could not be confirmed:", error);
     } finally {
       clearSession();
@@ -207,7 +205,6 @@
   } else {
     initialize();
   }
-  // Handles restored pages from browser back/forward cache after logout/login.
   window.addEventListener("pageshow", () => {
     if (currentPageName() === EDITOR && !requireAdmin()) return;
     if (currentPageName() === READER_SAVED && !requireReader()) return;

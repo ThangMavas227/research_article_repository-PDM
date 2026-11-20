@@ -1,7 +1,3 @@
-/* GET /api/articles provides article list fields only. Browse saves the selected
- * API record in sessionStorage for the detail page; DOI, abstract and citation
- * relationships are not included in the current list response.
- */
 const params = new URLSearchParams(window.location.search);
 const articleId = params.get('id');
 const detailEl = document.getElementById('articleDetail');

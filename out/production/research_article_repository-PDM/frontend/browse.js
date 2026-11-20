@@ -1,4 +1,3 @@
-/* Browse/Search: uses GET /api/articles?keyword=&year=&page=1&size=10. */
 const CONFIG = window.APP_CONFIG;
 const state = {
     page: 1,
@@ -13,7 +12,6 @@ const listEl = $('article-list');
 const statusEl = $('status-region');
 const pagerEl = $('pagination');
 
-// Backend article: { id, title, year, authors: [{ id, name }] }
 function normalizeArticle(raw) {
     const validId = (typeof raw?.id === 'string' && raw.id.trim() !== '') ||
         (typeof raw?.id === 'number' && Number.isInteger(raw.id));
@@ -32,7 +30,6 @@ function normalizeArticle(raw) {
     };
 }
 
-// Backend response: { items, page, size, totalItems, totalPages }
 function normalizeResponse(data) {
     if (!data || !Array.isArray(data.items) ||
         !Number.isInteger(data.page) || data.page < 1 ||
@@ -47,7 +44,6 @@ function normalizeResponse(data) {
 }
 
 async function getArticles({ page, keyword, year, signal }) {
-    // Actual API request. Do not filter or paginate the server's result again.
     const url = new URL(CONFIG.API_URL, window.location.href);
     url.searchParams.set('page', String(page));
     url.searchParams.set('size', String(CONFIG.PAGE_SIZE));
@@ -188,7 +184,6 @@ async function loadPage() {
         const result = await getArticles(request);
         if (requestId !== state.requestId) return;
 
-        // Data may have been deleted while the user was on a later page.
         if (result.totalPages > 0 && state.page > result.totalPages) {
             state.page = result.totalPages;
             loadPage();
@@ -237,7 +232,7 @@ $('next-btn').addEventListener('click', () => {
 $('browse-filter-form').addEventListener('submit', event => {
     event.preventDefault();
     const yearText = $('year').value.trim();
-    // Validate before sending the request. HTTP 400 from the API is handled by getArticles().
+
     if (yearText && (!/^\d{1,4}$/.test(yearText) || Number(yearText) < 1)) {
         statusEl.textContent = '';
         $('count-pill').textContent = '';

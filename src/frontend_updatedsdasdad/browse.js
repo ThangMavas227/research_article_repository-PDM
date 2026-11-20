@@ -1,4 +1,3 @@
-/* Browse/Search: data comes exclusively from GET /api/articles. */
 const CONFIG = window.APP_CONFIG;
 const state = {
     page: 1,
@@ -16,9 +15,6 @@ const listEl = $('article-list');
 const statusEl = $('status-region');
 const pagerEl = $('pagination');
 
-// API article shape: { id, title, year, doi, abstract, authors, references, citedBy }.
-// Keep all detail fields when normalizing: the selected article is saved in sessionStorage
-// and articleDetail.js reads it after navigation.
 function normalizeArticle(raw) {
     const validId = (typeof raw?.id === 'string' && raw.id.trim() !== '') ||
         (typeof raw?.id === 'number' && Number.isInteger(raw.id));
@@ -30,7 +26,6 @@ function normalizeArticle(raw) {
         throw new Error('Invalid article data returned by the server.');
     }
 
-    // null means absent/unavailable; [] means the API confirmed there are no citations.
     const normalizeCitations = (items, field) => {
         if (items == null) return null;
         if (!Array.isArray(items) || items.some(item =>
@@ -59,7 +54,6 @@ function normalizeArticle(raw) {
     };
 }
 
-// Backend response: { items, page, size, totalItems, totalPages }
 function normalizeResponse(data) {
     if (!data || !Array.isArray(data.items) ||
         !Number.isInteger(data.page) || data.page < 1 ||
@@ -73,8 +67,7 @@ function normalizeResponse(data) {
     return { ...data, items: data.items.map(normalizeArticle) };
 }
 
-async function getArticles({ page, keyword, year, yearFrom, yearTo, venueType, signal }) {
-    // The backend filters and paginates. Do not filter its results again.
+async function getArticles({ page, keyword, year, signal }) {
     const url = new URL(CONFIG.API_URL, window.location.href);
     url.searchParams.set('page', String(page));
     url.searchParams.set('size', String(CONFIG.PAGE_SIZE));
@@ -247,7 +240,6 @@ async function loadPage() {
         const result = await getArticles(request);
         if (requestId !== state.requestId) return;
 
-        // Data may have been deleted while the user was on a later page.
         if (result.totalPages > 0 && state.page > result.totalPages) {
             state.page = result.totalPages;
             loadPage();
@@ -298,7 +290,6 @@ $('next-btn').addEventListener('click', () => {
 $('browse-filter-form').addEventListener('submit', event => {
     event.preventDefault();
     const yearText = $('year').value.trim();
-    // Validate before sending the request. HTTP 400 from the API is handled by getArticles().
     if (yearText && (!/^\d{1,4}$/.test(yearText) || Number(yearText) < 1)) {
         statusEl.textContent = '';
         $('count-pill').textContent = '';
@@ -328,8 +319,6 @@ $('clear-filters').addEventListener('click', () => {
     loadPage();
 });
 
-// A Reader may save the filters that are currently applied to Browse.
-// Do not take values from the input boxes before Search has been submitted.
 function setupReaderSavedSearch() {
     if (window.RARAuth?.getRole() !== 'reader') return;
     const openBtn = $('open-save-search');
@@ -396,8 +385,6 @@ function setupReaderSavedSearch() {
     });
 }
 
-// Restore Saved Search filters from the URL, including canonical range/venue.
-// Legacy `year` URLs are still supported. Do not send both year and yearFrom/To.
 function loadInitialBrowseFilters() {
     const params = new URLSearchParams(window.location.search);
     if (!['keyword', 'year', 'yearFrom', 'yearTo', 'venueType'].some(key => params.has(key))) {
@@ -454,8 +441,6 @@ function loadInitialBrowseFilters() {
     }
 }
 
-// navigation.js is loaded with defer in index.html and may not be ready
-// when the regular browse.js script runs at the end of the body.
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', setupReaderSavedSearch, { once: true });
 } else {

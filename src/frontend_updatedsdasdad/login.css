@@ -13,7 +13,6 @@ body {
     margin: 0;
 }
 
-/* Login Page Layout */
 .login-page {
     min-height: 100vh;
     min-height: 100dvh;
@@ -23,7 +22,6 @@ body {
     padding: 24px;
 }
 
-/* Login Card */
 .login-card {
     width: 100%;
     max-width: 420px;
@@ -33,7 +31,6 @@ body {
     box-shadow: 0 10px 35px rgba(20, 40, 80, 0.1);
 }
 
-/* Branding */
 .brand-icon {
     font-size: 36px;
     text-align: center;
@@ -54,7 +51,6 @@ h1 {
     font-size: 14px;
 }
 
-/* Form Fields */
 .form-group {
     margin-bottom: 20px;
 }
@@ -85,7 +81,6 @@ input[aria-invalid="true"] {
     border-color: #c92a2a;
 }
 
-/* Password Input */
 .password-wrapper {
     display: flex;
     align-items: center;
@@ -96,7 +91,6 @@ input[aria-invalid="true"] {
     padding-right: 52px;
 }
 
-/* Eye Icon Button */
 .toggle-password {
     position: absolute;
     right: 8px;
@@ -123,7 +117,6 @@ input[aria-invalid="true"] {
     height: 20px;
 }
 
-/* Validation Messages */
 .field-error {
     display: block;
     color: #c92a2a;
@@ -145,7 +138,6 @@ input[aria-invalid="true"] {
     font-size: 13px;
 }
 
-/* Sign In Button */
 .login-button {
     width: 100%;
     padding: 13px;
@@ -167,7 +159,6 @@ input[aria-invalid="true"] {
     cursor: not-allowed;
 }
 
-/* Keyboard Focus */
 .login-button:focus-visible,
 .toggle-password:focus-visible,
 .back-link:focus-visible {
@@ -175,7 +166,6 @@ input[aria-invalid="true"] {
     outline-offset: 3px;
 }
 
-/* Back to Browse */
 .back-link {
     display: block;
     margin-top: 24px;
@@ -189,7 +179,6 @@ input[aria-invalid="true"] {
     text-decoration: underline;
 }
 
-/* Responsive */
 @media (max-width: 480px) {
     .login-card {
         padding: 26px 20px;
@@ -200,7 +189,6 @@ input[aria-invalid="true"] {
     }
 }
 
-/* Hide default password reveal icon in Microsoft Edge */
 #password::-ms-reveal,
 #password::-ms-clear {
     display: none;

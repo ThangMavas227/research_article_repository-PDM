@@ -1,4 +1,4 @@
-/* Reader saved searches: extend the existing navy/blue Browse theme. */
+
 [hidden] { display: none !important; }
 .saved-searches-page { max-width: 1100px; }
 .saved-searches-intro { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 18px; margin: 0 0 26px; }
@@ -57,7 +57,7 @@
 .saved-searches-empty { text-align: center; padding: 38px 10px; color: #667085; font-size: 14px; }
 .saved-searches-empty strong { display: block; color: #344054; font-size: 16px; margin-bottom: 5px; }
 .saved-searches-footnote { margin: -3px 0 35px; font-size: 13px; color: #667085; }
-/* Inline save card under the existing Browse search form. */
+
 .save-search-panel { margin-top: -8px; padding: 20px; }
 .save-search-panel > p { font-size: 14px; color: #667085; margin: 0 0 12px; }
 .save-search-inline-form { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }

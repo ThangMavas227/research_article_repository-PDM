@@ -1,10 +1,3 @@
-/*
-  RESEARCH ARTICLE REPOSITORY · OPTION A / ACADEMIC LIBRARY
-  Shared design tokens and visual treatment for ALL SIX HTML screens.
-  Place this stylesheet AFTER page-specific stylesheets; it intentionally
-  overrides legacy bright-blue/Arial styling without changing JS behaviour.
-  Font loading: Lora + Nunito Sans via Google Fonts; local fallback is provided.
-*/
 @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Nunito+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
@@ -68,7 +61,6 @@ a:hover { color: #24384c; }
 [hidden] { display: none !important; }
 ::selection { background: #d7d2cb; color: var(--a-ink); }
 
-/* Shared masthead: a softly raised ivory bar, as in Option A. */
 body > .site-header {
   margin: 17px auto 0;
   width: min(1380px, calc(100% - 32px));
@@ -144,7 +136,6 @@ body > .site-header {
 }
 .nav-notice-error { background: var(--a-danger-bg); color: var(--a-danger); border-color: #e8c9c4; }
 
-/* Common content width and form controls. */
 body:not(.page-login) > main,
 body.page-dashboard > main.dashboard-main {
   width: min(1280px, 100%);
@@ -184,7 +175,6 @@ button:disabled { cursor: not-allowed; opacity: .58; }
   overflow: hidden; white-space: nowrap;
 }
 
-/* Browse index: gentle library illustration drawn from selected Option A mockup. */
 #browse {
   overflow: hidden;
   border: 1px solid var(--a-border);
@@ -344,7 +334,6 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .page-detail .article-meta .meta-name { color: #57525c; }
 .info-note { background: #f0eee9; border: 1px solid var(--a-border); color: var(--a-muted); border-radius: var(--a-radius-sm); }
 
-/* Saved searches. */
 .saved-searches-page { max-width: 1280px; }
 .saved-searches-intro { margin: 2px 0 28px; }
 .saved-searches-intro h2, .page-intro h2 { color: var(--a-ink); font-family: var(--a-serif); font-size: clamp(26px, 3vw, 35px); font-weight: 600; }
@@ -388,7 +377,6 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .saved-searches-empty { color: var(--a-muted); }
 .saved-searches-empty strong { font-family: var(--a-serif); color: var(--a-ink); }
 
-/* Login page: centered ivory reading card. */
 .page-login .login-page {
   min-height: calc(100vh - 130px);
   min-height: calc(100dvh - 130px);
@@ -409,7 +397,6 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .login-card .field-error { color: var(--a-danger); }
 .login-card #form-message { border: 1px solid #e9ceca; background: var(--a-danger-bg); color: var(--a-danger); }
 
-/* Dashboard: same masthead and paper cards instead of saturated blue sidebar. */
 .page-dashboard .dashboard-main { padding: 0 24px 48px; }
 .page-dashboard .page-header {
   display: flex; justify-content: space-between; align-items: flex-start;
@@ -439,7 +426,6 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .page-dashboard .recent-list time { color: var(--a-muted); }
 .page-dashboard .range-controls select { background: var(--a-white); border-color: var(--a-border-strong); color: var(--a-ink); }
 
-/* Admin content editor: readable forms, journal-like record list. */
 .page-editor .page-intro h2 { font-size: clamp(27px, 3.3vw, 37px); }
 .page-editor .page-intro-subtitle { color: var(--a-muted); font-size: 14px; margin: 6px 0 0; }
 .page-editor .tab-switch { border-color: var(--a-border-strong); background: #f8f3ee; border-radius: 9px; }
@@ -468,7 +454,6 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .page-editor .feedback { border-radius: 9px; }
 .page-editor .empty-result { border-color: var(--a-border-strong); color: var(--a-muted); }
 
-/* Keep readable hierarchy and ample touch targets on small screens. */
 @media (max-width: 950px) {
   body > .site-header { align-items: flex-start; }
   .site-header [data-app-navigation] { gap: 3px 11px; }

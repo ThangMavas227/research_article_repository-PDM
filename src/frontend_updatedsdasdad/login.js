@@ -1,7 +1,7 @@
 
 "use strict";
 const API_BASE_URL = window.APP_CONFIG?.AUTH_BASE_URL||"http://localhost:8080";
-// DOM Elements
+
 const form = document.getElementById("login-form");
 const usernameInput = document.getElementById("username");
 const passwordInput = document.getElementById("password");
@@ -19,7 +19,6 @@ const togglePasswordIconCircle = document.getElementById(
     "toggle-password-icon-circle"
 );
 
-// Display Validation Error
 function setError(input, errorElement, message) {
     errorElement.textContent = message;
 
@@ -30,7 +29,6 @@ function setError(input, errorElement, message) {
     }
 }
 
-// Validate Login Form
 function validateForm() {
     let isValid = true;
 
@@ -61,7 +59,6 @@ function validateForm() {
     return isValid;
 }
 
-// Show / Hide Password
 togglePassword.addEventListener("click", () => {
     const isHidden = passwordInput.type === "password";
 
@@ -78,7 +75,6 @@ togglePassword.addEventListener("click", () => {
     );
 
     if (isHidden) {
-        // Eye-off icon
         togglePasswordIconPath.setAttribute(
             "d",
             "M17.94 17.94A10.94 10.94 0 0 1 12 19c-6.5 0-10-7-10-7a21.77 21.77 0 0 1 5.06-5.94M9.9 4.24A10.93 10.93 0 0 1 12 5c6.5 0 10 7 10 7a21.8 21.8 0 0 1-3.38 4.62M1 1l22 22"
@@ -86,7 +82,6 @@ togglePassword.addEventListener("click", () => {
 
         togglePasswordIconCircle.style.display = "none";
     } else {
-        // Normal eye icon
         togglePasswordIconPath.setAttribute(
             "d",
             "M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"
@@ -96,7 +91,6 @@ togglePassword.addEventListener("click", () => {
     }
 });
 
-// Clear Errors When Typing
 usernameInput.addEventListener("input", () => {
     setError(usernameInput, usernameError, "");
     formMessage.textContent = "";
@@ -107,7 +101,6 @@ passwordInput.addEventListener("input", () => {
     formMessage.textContent = "";
 });
 
-// Set Login Loading State
 function setLoading(isLoading) {
     loginButton.disabled = isLoading;
     usernameInput.disabled = isLoading;
@@ -118,7 +111,6 @@ function setLoading(isLoading) {
         : "Sign In";
 }
 
-// Real Backend Login Request
 async function login(username, password) {
     const response = await fetch(
         `${API_BASE_URL}/api/auth/login`,
@@ -152,7 +144,6 @@ async function login(username, password) {
         );
     }
 
-    // Validate Backend Response
     if (
         typeof data.token !== "string" ||
         !data.token ||
@@ -167,7 +158,6 @@ async function login(username, password) {
     return data;
 }
 
-// Submit Login Form
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -190,18 +180,13 @@ form.addEventListener("submit", async (event) => {
     setLoading(true);
 
     try {
-        // Call Real Login API
         const data = await login(username, password);
 
-        // Save Token and User for navigation between pages
         window.RARAuth.saveSession(data);
 
-    // Clear password
         passwordInput.value = "";
 
-        // Handle redirect after successful login
         const requestedNext = new URLSearchParams(window.location.search).get("next");
-        // Only permit known same-site destinations; never redirect to arbitrary URLs.
         const next = (data.user.role === "admin" && requestedNext === "articleEditor.html")
             ? "./articleEditor.html"
             : (data.user.role === "reader" && requestedNext === "readerSavedSearches.html")
@@ -219,7 +204,7 @@ form.addEventListener("submit", async (event) => {
         setLoading(false);
     }
 });
-    // Message when Guest tries to access Admin page
+
 if ( new URLSearchParams(window.location.search).get("reason") === "admin-required") {
     formMessage.textContent ="Sign in with an administrator account to manage content.";
 }

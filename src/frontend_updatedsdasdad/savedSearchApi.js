@@ -1,4 +1,3 @@
-/* Shared Saved Searches client. Uses the existing RARAuth Reader session. */
 (function () {
     'use strict';
 
@@ -66,8 +65,6 @@
         return Number(text);
     }
 
-    // The existing Browse API supports keyword + a single exact year.
-    // Encode that year as a range with equal endpoints in SavedSearch criteria.
     function criteriaFromBrowse(keyword, year) {
         const cleanKeyword = String(keyword || '').trim();
         const validYear = validateYear(year);
@@ -95,8 +92,6 @@
         return parts.join(' · ') || 'No filters';
     }
 
-    // Build canonical Browse API filters for every valid saved search.
-    // `year` is legacy and must never be combined with yearFrom/yearTo.
     function getBrowseParams(criteria) {
         const c = criteria || {};
         const params = new URLSearchParams();

@@ -1,4 +1,4 @@
-/* Shared role-based navigation. Keep existing blue / Arial site styles. */
+
 [data-app-navigation] { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 24px; }
 [data-app-navigation] a { text-decoration: none; }
 [data-app-navigation] a[aria-current="page"] { font-weight: 700; text-decoration: underline; text-underline-offset: 5px; }
@@ -10,14 +10,14 @@
 .nav-notice { max-width: 1100px; margin: 18px auto 0; padding: 12px 16px; border: 1px solid #bfdbfe; border-radius: 8px; background: #eff6ff; color: #1e40af; font-size: 14px; }
 .nav-notice-error { border-color: #fecaca; background: #fef2f2; color: #991b1b; }
 .nav-notice[hidden] { display: none; }
-/* Dashboard intentionally retains the existing left sidebar. */
+
 .sidebar-nav[data-app-navigation] { display: flex; align-items: stretch; flex-direction: column; gap: 7px; }
 .sidebar-nav[data-app-navigation] a[aria-current="page"] { text-decoration: none; }
 .sidebar-nav[data-app-navigation] .nav-username { display: block; color: #52627e; padding: 13px 14px 4px; font-size: 13px; }
 .sidebar-nav[data-app-navigation] .nav-logout { align-self: stretch; text-align: left; color: #24324a; border-color: #d3dceb; padding: 11px 14px; }
 .sidebar-nav[data-app-navigation] .nav-logout:hover { background: #f0f5ff; }
 .dashboard-main .nav-notice { margin: 0 0 18px; }
-/* Login card keeps its original layout; the navigation uses the site's navy header. */
+
 .login-nav-shell { background: #1e3a8a; color: white; padding: 16px max(24px, calc((100% - 1100px) / 2)); font: 14px Arial, sans-serif; }
 .login-nav-shell [data-app-navigation] a { color: inherit; }
 .login-nav-shell [data-app-navigation] .nav-logout:hover { background: rgba(255,255,255,.15); }

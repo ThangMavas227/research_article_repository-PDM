@@ -1,11 +1,9 @@
 
-/* Admin Article CRUD: POST, PUT, DELETE through the real Spring Boot API. */
 (() => {
   "use strict";
   if (!window.RARAuth || window.RARAuth.getRole() !== "admin") return;
 
   const $ = id => document.getElementById(id);
-  // Wider tab panels can display more cards without leaving unused desktop space.
   const PAGE_SIZE_ARTICLES = 6;
   const PAGE_SIZE_AUTHORS = 12;
   const state = { articles: [], authors: [], tab: "articles", page: 1, selectedAuthors: [] };
@@ -184,7 +182,6 @@
 
         card.appendChild(editButton);
 
-        // Destructive operation: require explicit confirmation.
         const deleteButton = document.createElement("button");
         deleteButton.type = "button";
         deleteButton.className = "btn btn-secondary btn-small";
@@ -225,8 +222,6 @@
       $(id).tabIndex = selected ? 0 : -1;
     }
 
-    // Each tab takes the full container width. The shared records panel is
-    // reused for Articles and Referenced Authors without duplicating list logic.
     $("records-panel").hidden = tab === "add";
     $("article-form-panel").hidden = tab !== "add";
     $("records-panel").setAttribute("aria-labelledby", tab === "authors" ? "authors-tab" : "articles-tab");
@@ -278,60 +273,48 @@
   }
 
   function showEditForm(article) {
-    // Clear previous feedback
     const feedbackElement = $("feedback");
     feedbackElement.textContent = "";
     feedbackElement.hidden = true;
     feedbackElement.className = "feedback";
     editingArticleId = article.id;
 
-    // Fill article information
     $("article-title").value = article.title || "";
     $("article-doi").value = article.doi || "";
     $("article-abstract").value = article.abstract || "";
     $("article-start-page").value = article.startPage ?? "";
 
-    // Select Venue / Edition
     $("article-edition").value =
         `${article.venueId}::${article.editionNumber}`;
 
-    // Select existing Authors
     state.selectedAuthors = (article.authors || [])
         .map(author => author.id);
 
-    // Clear Author search and new Author input
     $("author-search").value = "";
     $("new-author-name").value = "";
 
-    // Update Author selection
     renderAuthors();
 
-    // Update form heading and Article ID
     $("article-form-heading").textContent =
         `Edit Article — ${article.id}`;
 
     document.querySelector(".record-id").textContent =
         `Article ID: ${article.id}`;
 
-    // Enable Save Changes for PUT integration
     saveButton.disabled = false;
     saveButton.textContent = "Save Changes";
 
-    // Editing uses the same dedicated full-width form tab.
     showTab("add");
 
-    // Scroll to Edit Form
     $("article-form-panel").scrollIntoView({
       behavior: "smooth",
       block: "start"
     });
   }
 
-  // ---------- Delete Article (real MySQL API) ----------
   async function deleteArticle(article, button) {
     if (deletingArticleId || !article?.id) return;
 
-    // Require confirmation before permanently deleting.
     const confirmed = window.confirm(
         `Delete article ${article.id}?\n\n${article.title}\n\n` +
         "This permanently deletes the article and its associated links. This cannot be undone."
@@ -353,7 +336,6 @@
         }
       });
 
-      // BE returns HTTP 204 No Content on success.
       if (response.status !== 204) {
         const data = await readJson(response);
 
@@ -376,12 +358,10 @@
         );
       }
 
-      // Reset Edit form if its article was deleted.
       if (editingArticleId === article.id) {
         resetForm({ focus: false });
       }
 
-      // Reload data from MySQL.
       await load();
 
       feedback(
@@ -400,7 +380,6 @@
     }
   }
 
-  // ---------- Build Request Body ----------
   function makeCreateBody() {
     const title = $("article-title").value.trim();
     const doi = $("article-doi").value.trim();
@@ -458,7 +437,6 @@
     };
   }
 
-  // ---------- Save Article (POST / PUT) ----------
   $("article-form").addEventListener("submit", async event => {
     event.preventDefault();
 
@@ -473,7 +451,6 @@
       return;
     }
 
-    // Capture Add/Edit mode before resetting the form.
     const articleId = editingArticleId;
     const isEditing = articleId !== null;
     const method = isEditing ? "PUT" : "POST";
@@ -516,7 +493,6 @@
         );
       }
 
-      // Successful POST or PUT.
       resetForm({ focus: false });
       await load();
       showTab("articles");
@@ -541,7 +517,6 @@
     }
   });
 
-  // ---------- Event Listeners ----------
   $("articles-tab").addEventListener("click", () => showTab("articles"));
   $("add-article-tab").addEventListener("click", () => {
     showTab("add");
@@ -549,7 +524,6 @@
   });
   $("authors-tab").addEventListener("click", () => showTab("authors"));
 
-  // Arrow/Home/End navigate the tabs with keyboard as well as mouse.
   const tabs = [$("articles-tab"), $("add-article-tab"), $("authors-tab")];
   $("articles-tab").parentElement.addEventListener("keydown", event => {
     const index = tabs.indexOf(document.activeElement);
@@ -586,7 +560,6 @@
   $("reload-records").addEventListener("click", load);
   $("cancel-article").addEventListener("click", () => resetForm());
 
-  // ---------- Initialize ----------
   (async () => {
     try {
       await verifyAdmin();

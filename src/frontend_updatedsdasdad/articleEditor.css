@@ -1,4 +1,3 @@
-/* Editor-specific additions; retain the current site's Arial/navy/blue/card styling. */
 :root { color-scheme: light; }
 button, input, textarea { font: inherit; }
 button { -webkit-tap-highlight-color: transparent; }
@@ -53,13 +52,13 @@ header nav a[aria-current="page"] { font-weight: 700; text-decoration: underline
 .field-help { font-size: 12px; color: #6b7280; margin: 5px 0 0; }
 .field-error { display: block; min-height: 0; font-size: 12px; color: #b91c1c; margin-top: 5px; }
 .field-error:empty { display: none; }
-/* Searchable author picker: selected-only when search is empty. */
+
 .form-field .author-search-label { font-size: 12px; font-weight: 500; color: #4b5563; margin: 0 0 6px; }
 .edit-form input.author-search[type="search"] { display: block; width: 100%; min-width: 0; flex: none; padding: 11px 12px; background: #fff; border: 1px solid #d1d5db; border-radius: 6px; font: inherit; font-size: 14px; line-height: 1.5; }
 .author-search::placeholder { color: #9ca3af; }
 .author-selection-status { min-height: 18px; margin: 8px 0; font-size: 12px; color: #6b7280; }
 .author-picker { border: 1px solid #d1d5db; background: #fff; border-radius: 6px; padding: 8px; min-height: 55px; max-height: 210px; overflow-y: auto; display: grid; align-content: start; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px 8px; }
-/* .form-field label { display:block } from the shared form rules must NOT override this flex row. */
+
 .form-field label.author-option { display: flex; align-items: center; gap: 9px; padding: 9px 10px; margin: 0; min-width: 0; border-radius: 6px; cursor: pointer; font-size: 13px; line-height: 1.35; font-weight: 400; overflow-wrap: anywhere; }
 .form-field label.author-option:hover { background: #f3f4f6; }
 .form-field label.author-option.is-selected { background: #eff6ff; }
@@ -89,11 +88,9 @@ header nav a[aria-current="page"] { font-weight: 700; text-decoration: underline
   .demo-footer { text-align: left; }
 }
 
-/* Add Article: select uses the same style as text fields. */
 .edit-form select { display:block; width:100%; min-width:0; padding:11px 12px; border:1px solid #d1d5db; border-radius:6px; background:white; font:inherit; font-size:14px; }
 .edit-form select:focus-visible { outline: 3px solid #93c5fd; outline-offset:2px; }
 
-/* Manage Content: three genuinely separate full-width views, including Referenced Authors. */
 .page-editor .editor-layout { display: block; width: 100%; min-width: 0; }
 .page-editor .editor-panel { width: 100%; min-width: 0; }
 .page-editor .tab-switch { display: flex; flex-wrap: wrap; width: fit-content; max-width: 100%; }
