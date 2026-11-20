@@ -266,7 +266,10 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .results-head #results-title { margin: 0 auto 0 0; font-family: var(--a-serif); font-size: clamp(26px,2.6vw,34px); color: #38343d; }
 .results-head #count-pill, .results-head #page-label { margin: 0; color: var(--a-muted); font-size: 14px; font-weight: 500; }
 .results-head #count-pill { margin-left: auto; }
-.results-head #page-label { padding-left: 15px; border-left: 1px solid var(--a-border-strong); }
+.results-head #page-label {
+    padding-left: 0;
+    border-left: none;
+}
 #status-region { color: var(--a-muted); font-size: 14px; margin: 2px 0 8px; }
 #status-region:empty { display:none; }
 #article-list { min-height: 70px; }
@@ -548,7 +551,7 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 <p aria-live="polite" class="saved-search-feedback" hidden="" id="save-search-message" role="status"></p>
 </section>
 
-<section aria-labelledby="results-title" class="browse-results"><div class="results-head"><h3 id="results-title">Articles</h3><p id="count-pill"></p><p id="page-label"></p></div>
+<section aria-labelledby="results-title" class="browse-results"><div class="results-head"><h3 id="results-title">Articles</h3><p id="page-label"></p></div>
 
 <div aria-live="polite" id="status-region" role="status"></div>
 

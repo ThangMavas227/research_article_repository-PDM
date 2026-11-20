@@ -261,7 +261,7 @@ async function loadDashboard() {
     $("year-chart").textContent = "Chart unavailable.";
     $("recent-articles").textContent = "Recent articles unavailable.";
     setText("chart-range-label", "");
-    setStatus(`Could not load Dashboard: ${error.message}. Check Spring Boot (localhost:8080), MySQL and CORS.`, true);
+    setStatus("Disconnected from server.", true);
     $("retry-dashboard").hidden = false;
     console.error("[Dashboard]", error);
   }

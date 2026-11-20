@@ -244,7 +244,6 @@ async function loadPage() {
         }
         state.page = result.page;
         statusEl.textContent = activeAdvancedFiltersSummary();
-        $('count-pill').textContent = `${result.totalItems} article${result.totalItems === 1 ? '' : 's'}`;
 
         if (result.totalItems === 0 || result.items.length === 0) {
             $('page-label').textContent = '';
@@ -261,13 +260,12 @@ async function loadPage() {
         }
         const start = (result.page - 1) * result.size + 1;
         const end = start + result.items.length - 1;
-        $('page-label').textContent = `Showing ${start}–${end} of ${result.totalItems}`;
+        $('page-label').textContent = `Showing ${start}–${end}`;
         renderArticles(result.items);
         renderPager(result.page, result.totalPages);
     } catch (err) {
         if (requestId !== state.requestId || err.name === 'AbortError') return;
         statusEl.textContent = '';
-        $('count-pill').textContent = 'Unavailable';
         $('page-label').textContent = '';
         showState('error', 'Could not load articles',
             err?.name === 'TypeError'
