@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article Detail</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="navigation.css">
+    <script src="navigation.js" defer></script>
+</head>
+
+<body>
+    <header>
+        <h1>Research Article Repository</h1>
+        <nav aria-label="Main navigation" data-app-navigation>
+    </nav>
+    </header>
+        <div data-navigation-notice hidden role="status" aria-live="polite">
+    </div>
+    <main>
+        <a href="index.html" class="back-btn">
+            ← Back to Browse
+        </a>
+
+        <section id="articleDetail">
+            <article class="article-row">
+                <h2 id="detail-title" class="article-title"></h2>
+
+                <div class="article-meta">
+                    <div>
+                        <span class="meta-name">Authors:</span>
+                        <span id="detail-authors"></span>
+                    </div>
+
+                    <div>
+                        <span class="meta-name">Published:</span>
+                        <span id="detail-year" class="meta-year"></span>
+                    </div>
+
+                    <div>
+                        <span class="meta-name">DOI:</span>
+                        <span id="detail-doi"></span>
+                    </div>
+                </div>
+
+                <h3>Abstract</h3>
+                <p id="detail-abstract"></p>
+            </article>
+
+            <p id="detail-api-note" class="info-note" hidden></p>
+
+            <h2>References</h2>
+            <div id="references-list"></div>
+
+            <h2>Cited By</h2>
+            <div id="cited-by-list"></div>
+        </section>
+    </main>
+
+    <script src="config.js"></script>
+    <script src="articleDetail.js"></script>
+</body>
+</html>

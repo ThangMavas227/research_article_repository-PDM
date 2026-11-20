@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" class="auth-pending">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Content | Research Article Repository</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="navigation.css">
+  <link rel="stylesheet" href="articleEditor.css">
+  <style>.auth-pending body { visibility: hidden; }</style>
+  <script src="config.js"></script>
+  <script src="navigation.js"></script>
+  <script>window.RARAuth.requireAdmin();</script>
+</head>
+<body>
+<header>
+  <h1>Research Article Repository</h1>
+  <nav aria-label="Main navigation" data-app-navigation></nav>
+</header>
+<div data-navigation-notice hidden role="status" aria-live="polite"></div>
+<main>
+  <section class="page-intro" aria-labelledby="page-title">
+    <h2 id="page-title">Manage Research Content</h2>
+  </section>
+  <div id="feedback" class="feedback" role="status" aria-live="polite" hidden></div>
+
+  <div class="editor-toolbar">
+    <div class="tab-switch" role="tablist" aria-label="Content type">
+      <button id="articles-tab" class="tab-btn" type="button" role="tab" aria-selected="true">Articles <span id="article-count" class="tab-count"></span></button>
+      <button id="authors-tab" class="tab-btn" type="button" role="tab" aria-selected="false">Referenced Authors <span id="author-count" class="tab-count"></span></button>
+    </div>
+    <button id="reload-records" class="btn btn-secondary" type="button">Reload from MySQL</button>
+  </div>
+
+  <div class="editor-layout">
+    <section class="editor-panel list-panel" aria-labelledby="list-heading">
+      <div class="panel-header">
+        <h3 id="list-heading">Articles</h3>
+        <button id="add-record" class="btn btn-primary btn-small" type="button">+ Add Article</button>
+      </div>
+      <p class="panel-description" id="list-description">Records fetched from the Backend API.</p>
+      <label class="field-label" for="record-search">Search</label>
+      <input class="record-search" id="record-search" type="search" placeholder="Search article or author..." autocomplete="off">
+      <div id="record-list" class="record-list" aria-live="polite"></div>
+      <div id="record-pagination" class="editor-pager" hidden>
+        <button id="previous-page" class="btn btn-secondary btn-small" type="button">Previous</button>
+        <span id="page-count"></span>
+        <button id="next-page" class="btn btn-secondary btn-small" type="button">Next</button>
+      </div>
+    </section>
+
+    <section class="editor-panel edit-panel" id="article-form-panel" aria-labelledby="article-form-heading">
+      <div class="panel-header">
+        <h3 id="article-form-heading">Add Article</h3>
+        <span class="record-id">New record — ID assigned by Backend</span>
+      </div>
+      <p class="panel-description">Fields marked * are required. Publication year follows the selected edition.</p>
+      <form class="edit-form" id="article-form" novalidate>
+        <div class="form-grid">
+          <div class="form-field full-width">
+            <label for="article-title">Title *</label>
+            <input id="article-title" type="text" maxlength="255" required>
+          </div>
+          <div class="form-field full-width">
+            <label for="article-doi">DOI *</label>
+            <input id="article-doi" type="text" maxlength="100" placeholder="10.1234/example" required>
+          </div>
+          <div class="form-field full-width">
+            <label for="article-edition">Venue / Edition *</label>
+            <select id="article-edition" required>
+              <option value="">Loading available editions...</option>
+            </select>
+            <p class="field-help">Only editions found in existing articles are shown. A full edition lookup API is not available yet.</p>
+          </div>
+          <div class="form-field">
+            <label for="article-start-page">Start Page *</label>
+            <input id="article-start-page" type="number" min="1" step="1" required>
+          </div>
+          <div class="form-field full-width">
+            <label for="article-abstract">Abstract</label>
+            <textarea id="article-abstract" rows="5"></textarea>
+          </div>
+          <div class="form-field full-width">
+            <span class="field-label" id="author-picker-label">Existing Authors (select at least one unless adding a new author)</span>
+            <label class="author-search-label" for="author-search">Find by name or ID</label>
+            <input id="author-search" class="author-search" type="search" placeholder="Search existing authors" autocomplete="off" aria-controls="author-picker">
+            <p id="author-selection-status" class="author-selection-status" role="status" aria-live="polite"></p>
+            <div id="author-picker" class="author-picker" role="group" aria-labelledby="author-picker-label"></div>
+            <p class="field-help">Authors are collected from articles returned by the API, not the complete Author table.</p>
+          </div>
+          <div class="form-field full-width">
+            <label for="new-author-name">New Author Name (optional)</label>
+            <input id="new-author-name" type="text" maxlength="150" placeholder="Creates a new author if provided">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button id="save-article" class="btn btn-primary" type="submit">Save New Article</button>
+          <button class="btn btn-secondary" type="button" id="cancel-article">Clear Form</button>
+        </div>
+      </form>
+    </section>
+  </div>
+</main>
+<script src="articleEditor.js" defer></script>
+</body>
+</html>
