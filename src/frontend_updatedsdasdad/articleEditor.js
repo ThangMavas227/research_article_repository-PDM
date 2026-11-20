@@ -239,7 +239,6 @@
       $("record-search").placeholder = tab === "articles"
           ? "Search article or author..."
           : "Search author name or ID...";
-      $("add-record").hidden = tab !== "articles";
       render();
     }
   }
@@ -586,10 +585,6 @@
 
   $("reload-records").addEventListener("click", load);
   $("cancel-article").addEventListener("click", () => resetForm());
-  $("add-record").addEventListener("click", () => {
-    showTab("add");
-    resetForm();
-  });
 
   // ---------- Initialize ----------
   (async () => {
