@@ -92,3 +92,53 @@ button:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid
   .panel { padding: 17px; }
   .recent-list li { gap: 12px; }
 }
+
+
+/* Q3-Q5 backend reports (scoped to Dashboard only). */
+.page-dashboard .stats-grid { align-items: stretch; }
+.page-dashboard .report-card { min-height: 340px; }
+.page-dashboard .report-card h2 { min-height: 38px; }
+.page-dashboard .report-filter { margin: 0 0 9px; }
+.page-dashboard .report-filter > label { display: block; font-size: 12px; margin-bottom: 5px; color: #52627a; }
+.page-dashboard .report-filter-row { display: flex; gap: 7px; align-items: stretch; }
+.page-dashboard .report-filter-row input { min-width: 0; width: 100%; flex: 1; padding: 7px 9px; }
+.page-dashboard .report-run-button, .page-dashboard .report-filter-row button {
+  border: 1px solid #c6cfd9; border-radius: 8px; background: #edf1f5;
+  color: #32465c; cursor: pointer; padding: 8px 10px; font-size: 12px;
+  flex-shrink: 0;
+}
+.page-dashboard .report-run-button { margin: 8px 0 0; }
+.page-dashboard .report-run-button:hover, .page-dashboard .report-filter-row button:hover { background: #dfe7ee; }
+.page-dashboard .report-meta { font-size: 12px; line-height: 1.5; color: #697485; margin: 9px 0; }
+.page-dashboard .report-list, .page-dashboard .report-year-list {
+  margin: 10px 0 0; padding: 0; max-height: 250px; overflow-y: auto;
+  overflow-x: hidden; font-size: 13px;
+}
+.page-dashboard .report-list { list-style: decimal; padding-left: 20px; }
+.page-dashboard .report-list li { padding: 7px 2px; border-bottom: 1px solid #ece6e0; }
+.page-dashboard .report-list li:last-child { border-bottom: none; }
+.page-dashboard .report-list a { font-weight: 650; line-height: 1.35; text-decoration: none; overflow-wrap: anywhere; }
+.page-dashboard .report-list a:hover { text-decoration: underline; }
+.page-dashboard .report-item-meta { color: #697485; font-size: 12px; margin-top: 4px; }
+.page-dashboard .report-placeholder { color: #697485; font-size: 12px; line-height: 1.5; }
+.page-dashboard .report-error { color: #a43232; }
+.page-dashboard .report-venue-picker { margin: 3px 0 0; }
+.page-dashboard .report-venue-picker summary {
+  border: 1px solid #cbd2d8; border-radius: 8px; padding: 9px;
+  font-size: 12px; cursor: pointer; user-select: none;
+}
+.page-dashboard .report-venue-options {
+  display: grid; gap: 7px; max-height: 130px; overflow-y: auto;
+  border: 1px solid #e4dad1; border-radius: 8px; padding: 9px; margin-top: 6px;
+  background: #fffaf5;
+}
+.page-dashboard .report-venue-option { display: flex; align-items: flex-start; gap: 7px; font-size: 12px; line-height: 1.35; cursor: pointer; }
+.page-dashboard .report-venue-option input { margin-top: 2px; flex-shrink: 0; }
+.page-dashboard .report-year-row { border-bottom: 1px solid #ece6e0; padding: 8px 0; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.page-dashboard .report-year-row:last-child { border-bottom: 0; }
+.page-dashboard .report-year-row strong { font-size: 14px; color: #35485c; }
+.page-dashboard .report-year-row span { color: #6b6872; font-size: 11px; text-align: right; }
+@media (max-width: 520px) {
+  .page-dashboard .report-filter-row { flex-wrap: wrap; }
+  .page-dashboard .report-filter-row button { width: 100%; }
+}

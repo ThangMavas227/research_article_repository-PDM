@@ -11,7 +11,13 @@
 <script defer="" src="navigation.js"></script>
 <script defer="" src="dashboard.js"></script>
 <style data-version="2026-11-20-fix" id="option-a-embedded-theme">
-
+/*
+  RESEARCH ARTICLE REPOSITORY · OPTION A / ACADEMIC LIBRARY
+  Shared design tokens and visual treatment for ALL SIX HTML screens.
+  Place this stylesheet AFTER page-specific stylesheets; it intentionally
+  overrides legacy bright-blue/Arial styling without changing JS behaviour.
+  Font loading: Lora + Nunito Sans via Google Fonts; local fallback is provided.
+*/
 @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Nunito+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
@@ -75,6 +81,7 @@ a:hover { color: #24384c; }
 [hidden] { display: none !important; }
 ::selection { background: #d7d2cb; color: var(--a-ink); }
 
+/* Shared masthead: a softly raised ivory bar, as in Option A. */
 body > .site-header {
   margin: 17px auto 0;
   width: min(1380px, calc(100% - 32px));
@@ -150,6 +157,7 @@ body > .site-header {
 }
 .nav-notice-error { background: var(--a-danger-bg); color: var(--a-danger); border-color: #e8c9c4; }
 
+/* Common content width and form controls. */
 body:not(.page-login) > main,
 body.page-dashboard > main.dashboard-main {
   width: min(1280px, 100%);
@@ -189,6 +197,7 @@ button:disabled { cursor: not-allowed; opacity: .58; }
   overflow: hidden; white-space: nowrap;
 }
 
+/* Browse index: gentle library illustration drawn from selected Option A mockup. */
 #browse {
   overflow: hidden;
   border: 1px solid var(--a-border);
@@ -327,6 +336,7 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .state-icon { color: var(--a-navy); font-size: 24px; }
 .shimmer { background: #e8e1db; }
 
+/* Article detail / citations. */
 .page-detail .detail-main { width: min(980px,100%); }
 .page-detail .back-btn, .saved-searches-back-link, .back-link { color: var(--a-navy-dark); font-weight: 700; text-decoration: none; }
 .page-detail .back-btn:hover, .saved-searches-back-link:hover, .back-link:hover { text-decoration: underline; }
@@ -347,6 +357,7 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .page-detail .article-meta .meta-name { color: #57525c; }
 .info-note { background: #f0eee9; border: 1px solid var(--a-border); color: var(--a-muted); border-radius: var(--a-radius-sm); }
 
+/* Saved searches. */
 .saved-searches-page { max-width: 1280px; }
 .saved-searches-intro { margin: 2px 0 28px; }
 .saved-searches-intro h2, .page-intro h2 { color: var(--a-ink); font-family: var(--a-serif); font-size: clamp(26px, 3vw, 35px); font-weight: 600; }
@@ -390,6 +401,7 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .saved-searches-empty { color: var(--a-muted); }
 .saved-searches-empty strong { font-family: var(--a-serif); color: var(--a-ink); }
 
+/* Login page: centered ivory reading card. */
 .page-login .login-page {
   min-height: calc(100vh - 130px);
   min-height: calc(100dvh - 130px);
@@ -410,6 +422,7 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .login-card .field-error { color: var(--a-danger); }
 .login-card #form-message { border: 1px solid #e9ceca; background: var(--a-danger-bg); color: var(--a-danger); }
 
+/* Dashboard: same masthead and paper cards instead of saturated blue sidebar. */
 .page-dashboard .dashboard-main { padding: 0 24px 48px; }
 .page-dashboard .page-header {
   display: flex; justify-content: space-between; align-items: flex-start;
@@ -439,6 +452,7 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .page-dashboard .recent-list time { color: var(--a-muted); }
 .page-dashboard .range-controls select { background: var(--a-white); border-color: var(--a-border-strong); color: var(--a-ink); }
 
+/* Admin content editor: readable forms, journal-like record list. */
 .page-editor .page-intro h2 { font-size: clamp(27px, 3.3vw, 37px); }
 .page-editor .page-intro-subtitle { color: var(--a-muted); font-size: 14px; margin: 6px 0 0; }
 .page-editor .tab-switch { border-color: var(--a-border-strong); background: #f8f3ee; border-radius: 9px; }
@@ -467,6 +481,7 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .page-editor .feedback { border-radius: 9px; }
 .page-editor .empty-result { border-color: var(--a-border-strong); color: var(--a-muted); }
 
+/* Keep readable hierarchy and ample touch targets on small screens. */
 @media (max-width: 950px) {
   body > .site-header { align-items: flex-start; }
   .site-header [data-app-navigation] { gap: 3px 11px; }
@@ -525,35 +540,61 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 </div>
 <header class="page-header">
 <div>
-<h1>Article Statistics Dashboard</h1>
+<h1>Article Statistics Dashboard</h1><p class="dashboard-subtitle">An overview of research articles and publication activity.</p>
 </div>
 </header>
 <div aria-live="polite" class="status-message" id="dashboard-status" role="status">Loading article statistics…</div>
 <button class="retry-button" hidden="" id="retry-dashboard" type="button">Try again</button>
-<section aria-label="Article statistics" class="stats-grid">
-<article class="stat-card">
-<h2>Total Articles</h2>
-<p class="stat-value" id="total-articles">—</p>
-</article>
-<article class="stat-card">
-<h2>Articles by Year Range</h2>
-<div class="range-controls">
-<label for="year-from">From</label>
-<select aria-label="Start publication year" disabled="" id="year-from"></select>
-<label for="year-to">To</label>
-<select aria-label="End publication year" disabled="" id="year-to"></select>
-</div>
-<p class="stat-value" id="range-total">—</p>
-</article>
-<article class="stat-card most-cited-card">
-<h2>Most Cited Article</h2>
-<div class="most-cited-content" id="most-cited">—</div>
+<section aria-label="Article statistics and reports" class="stats-grid">
+  <!-- Q3: Top cited articles for a selected subject area -->
+  <article class="stat-card report-card" aria-labelledby="q3-title">
+    <h2 id="q3-title">Q3 · Top 10 Cited Articles</h2>
+    <form class="report-filter" id="q3-form">
+      <label for="q3-area">Subject Area ID</label>
+      <div class="report-filter-row">
+        <input id="q3-area" name="areaId" type="text" value="SA001" placeholder="e.g. SA001" required autocomplete="off" />
+        <button type="submit" id="q3-apply">Run Q3</button>
+      </div>
+    </form>
+    <p class="report-meta" id="q3-meta">Top cited publications in the selected subject area.</p>
+    <ol id="q3-list" class="report-list" aria-live="polite"><li class="report-placeholder">Loading Q3…</li></ol>
+  </article>
 
-</article>
-<article class="stat-card">
-<h2>Authors in Articles</h2>
-<p class="stat-value" id="total-authors">—</p>
-</article>
+  <!-- Existing Year Range remains in position 2 -->
+  <article class="stat-card">
+    <h2>Articles by Year Range</h2>
+    <div class="range-controls">
+      <label for="year-from">From</label>
+      <select aria-label="Start publication year" disabled id="year-from"></select>
+      <label for="year-to">To</label>
+      <select aria-label="End publication year" disabled id="year-to"></select>
+    </div>
+    <p class="stat-value" id="range-total">—</p>
+    <p class="stat-caption">Articles in selected years</p>
+  </article>
+
+  <!-- Q4: Authors with publications in every chosen venue -->
+  <article class="stat-card report-card" aria-labelledby="q4-title">
+    <h2 id="q4-title">Q4 · Authors in All Selected Venues</h2>
+    <details class="report-venue-picker">
+      <summary id="q4-summary">Choose venues</summary>
+      <div class="report-venue-options" id="q4-venue-options" role="group" aria-label="Choose venues for Q4">
+        <p class="report-placeholder">Loading venues…</p>
+      </div>
+    </details>
+    <button type="button" class="report-run-button" id="q4-apply">Run Q4</button>
+    <p class="report-meta" id="q4-meta">Select 1–20 venues. Matches must have published in every selected venue.</p>
+    <ol id="q4-list" class="report-list" aria-live="polite"><li class="report-placeholder">Loading Q4…</li></ol>
+  </article>
+
+  <!-- Q5: Average authors per article, grouped by year -->
+  <article class="stat-card report-card" aria-labelledby="q5-title">
+    <h2 id="q5-title">Q5 · Avg. Authors per Article by Year</h2>
+    <p class="report-meta">Calculated by the Backend for each publication year.</p>
+    <div id="q5-list" class="report-year-list" aria-live="polite">
+      <p class="report-placeholder">Loading Q5…</p>
+    </div>
+  </article>
 </section>
 <section aria-labelledby="year-chart-title" class="panel">
 <div class="panel-heading">
