@@ -156,7 +156,6 @@
         const url = new URL(path, base).toString();
         const response = await fetch(url, {
           method: "POST",
-          credentials: "include",
           headers: { Authorization: `Bearer ${session.token}`, Accept: "application/json" }
         });
         if (!response.ok) throw new Error(`Logout failed (HTTP ${response.status})`);
