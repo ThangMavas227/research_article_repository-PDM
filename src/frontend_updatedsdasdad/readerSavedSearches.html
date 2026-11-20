@@ -529,11 +529,13 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 <div class="saved-searches-intro">
 <div>
 <h2>My Saved Searches</h2>
+<p>Save your article search filters and return to them whenever you need.</p>
 </div>
 <a class="saved-searches-back-link" href="index.html">← Browse articles</a>
 </div>
 <section aria-labelledby="create-search-heading" class="saved-searches-panel">
 <h3 id="create-search-heading">Create a saved search</h3>
+<p class="saved-searches-muted">The current article search supports keyword and an exact publication year.</p>
 <form class="saved-searches-form" id="saved-search-form">
 <div class="saved-searches-fields">
 <div class="saved-searches-field">
@@ -542,7 +544,8 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 </div>
 <div class="saved-searches-field">
 <label for="saved-search-year">Publication year</label>
-<input id="saved-search-year" max="9999" min="1" name="year" placeholder="Any year" step="1" type="number"/>
+<input id="saved-search-year" name="year" type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" list="saved-search-year-options" autocomplete="off" placeholder="Any year" title="Choose an available year or enter a four-digit year"/>
+<datalist id="saved-search-year-options"></datalist>
 </div>
 <div class="saved-searches-field">
 <label for="saved-search-name">Search name</label>
@@ -559,12 +562,14 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 <div class="saved-searches-section-header">
 <div>
 <h3 id="my-searches-heading">Saved Searches <span class="saved-searches-count" hidden="" id="saved-search-count"></span></h3>
+<p class="saved-searches-muted">Only searches belonging to your signed-in account are shown.</p>
 </div>
 <button class="saved-searches-button" id="refresh-saved-searches" type="button">Refresh</button>
 </div>
 <p aria-live="polite" class="saved-searches-message" hidden="" id="saved-searches-message" role="status"></p>
 <div aria-live="polite" class="saved-searches-list" id="saved-searches-list"></div>
 </section>
+<p class="saved-searches-footnote">Saved searches with a year range or venue filter are displayed, but cannot be run until the article search API supports those filters.</p>
 </main>
 </body>
 </html>

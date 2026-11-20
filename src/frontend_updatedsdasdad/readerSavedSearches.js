@@ -16,6 +16,56 @@
     const createBtn = $('create-saved-search');
     let isLoading = false;
 
+    // Suggest years present in the real article data.
+    // The input stays editable if the API is unavailable or the year is not listed.
+    async function loadYearSuggestions() {
+        const datalist = $('saved-search-year-options');
+        const apiUrl = window.APP_CONFIG?.API_URL;
+        if (!datalist || !apiUrl) return;
+
+        const years = new Set();
+        let page = 1;
+        let totalPages = 1;
+
+        try {
+            do {
+                const url = new URL(apiUrl, window.location.href);
+                url.searchParams.set('page', String(page));
+                url.searchParams.set('size', '100');
+                const response = await fetch(url.toString(), {
+                    headers: { Accept: 'application/json' }
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const data = await response.json();
+                if (!Array.isArray(data.items) || !Number.isInteger(data.totalPages)) {
+                    throw new Error('Unexpected article response');
+                }
+
+                for (const article of data.items) {
+                    const year = Number(article.year);
+                    if (Number.isInteger(year) && year >= 1000 && year <= 9999) {
+                        years.add(year);
+                    }
+                }
+
+                totalPages = data.totalPages;
+                page += 1;
+            } while (page <= totalPages);
+
+            datalist.replaceChildren(
+                ...[...years].sort((a, b) => b - a).map(year => {
+                    const option = document.createElement('option');
+                    option.value = String(year);
+                    return option;
+                })
+            );
+        } catch (error) {
+            // Do not block Saved Search: users can still enter a year manually.
+            console.warn('[Saved Searches] Could not load year suggestions:', error);
+        }
+    }
+
     function notify(message, kind = 'info') {
         statusEl.textContent = message;
         statusEl.dataset.kind = kind;
@@ -149,5 +199,6 @@
         await loadSavedSearches();
     });
 
+    void loadYearSuggestions();
     loadSavedSearches();
 })();
