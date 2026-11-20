@@ -67,12 +67,11 @@ function normalizeResponse(data) {
     return { ...data, items: data.items.map(normalizeArticle) };
 }
 
-async function getArticles({ page, keyword, year, signal }) {
+async function getArticles({ page, keyword, year, yearFrom, yearTo, venueType, signal}) {
     const url = new URL(CONFIG.API_URL, window.location.href);
     url.searchParams.set('page', String(page));
     url.searchParams.set('size', String(CONFIG.PAGE_SIZE));
     if (keyword) url.searchParams.set('keyword', keyword);
-    // Never combine legacy exact-year with the canonical year range.
     if (year !== null) {
         url.searchParams.set('year', String(year));
     } else {
@@ -199,8 +198,6 @@ function renderPager(page, totalPages) {
     $('next-btn').disabled = page >= totalPages;
 }
 
-// The Browse form has only an exact Year input. Make advanced filters visible
-// when they were applied from a Saved Search rather than silently hiding them.
 function activeAdvancedFiltersSummary() {
     if (state.yearFrom === null && state.yearTo === null && !state.venueType) return '';
     const criteria = {
@@ -330,8 +327,6 @@ function setupReaderSavedSearch() {
     const api = window.RARSavedSearchApi;
     if (!api) return;
 
-    // Preserve the canonical filters when a Reader saves an advanced search
-    // that was just run from My Saved Searches.
     const currentCriteria = () => {
         if (state.yearFrom !== null || state.yearTo !== null || state.venueType) {
             return {
@@ -421,8 +416,6 @@ function loadInitialBrowseFilters() {
         state.yearTo = to;
         state.venueType = venue;
 
-        // Show an exact-year Saved Search in the existing Year field when no
-        // venue filter is active. This keeps the old Browse form intuitive.
         if (year === null && from !== null && from === to && !venue) {
             state.year = from;
             state.yearFrom = null;
