@@ -8,6 +8,7 @@
 
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="navigation.css">
+    <link rel="stylesheet" href="readerSavedSearches.css">
 
     <script src="config.js"></script>
     <script src="navigation.js" defer></script>
@@ -50,7 +51,22 @@
 
             <button type="submit">Search</button>
             <button type="button" id="clear-filters" class="secondary-btn">Clear</button>
+            <button type="button" id="open-save-search" class="secondary-btn" hidden>Save this search</button>
         </form>
+
+        <!-- Reader-only action: save filters applied on the Browse page. -->
+        <section id="save-search-panel" class="save-search-panel" aria-labelledby="save-search-title" hidden>
+            <h3 id="save-search-title">Save this search</h3>
+            <p id="save-search-summary">Your current filters will be saved to your Reader account.</p>
+            <form id="save-search-form" class="save-search-inline-form">
+                <label for="save-search-name">Search name</label>
+                <input id="save-search-name" name="searchName" type="text"
+                       maxlength="100" required placeholder="e.g. Papers about indexing" autocomplete="off">
+                <button type="submit" id="confirm-save-search">Save search</button>
+                <button type="button" id="cancel-save-search" class="secondary-btn">Cancel</button>
+            </form>
+            <p id="save-search-message" class="saved-search-feedback" role="status" aria-live="polite" hidden></p>
+        </section>
 
 <!-- Article Results -->
         <section aria-labelledby="results-title">
@@ -79,6 +95,7 @@
     </section>
 </main>
 
+<script src="savedSearchApi.js"></script>
 <script src="browse.js"></script>
 </body>
 </html>

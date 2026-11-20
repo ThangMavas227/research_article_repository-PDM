@@ -201,7 +201,11 @@ form.addEventListener("submit", async (event) => {
 
         // Handle redirect after successful login
         const requestedNext = new URLSearchParams(window.location.search).get("next");
-        const next = data.user.role === "admin" && requestedNext === "articleEditor.html"? "./articleEditor.html": "./index.html";
+        // Only permit known same-site destinations; never redirect to arbitrary URLs.
+        const next = (data.user.role === "admin" && requestedNext === "articleEditor.html")
+            ? "./articleEditor.html"
+            : (data.user.role === "reader" && requestedNext === "readerSavedSearches.html")
+                ? "./readerSavedSearches.html" : "./index.html";
         window.location.assign(next);
 
     } catch (error) {
@@ -218,4 +222,8 @@ form.addEventListener("submit", async (event) => {
     // Message when Guest tries to access Admin page
 if ( new URLSearchParams(window.location.search).get("reason") === "admin-required") {
     formMessage.textContent ="Sign in with an administrator account to manage content.";
+}
+
+if (new URLSearchParams(window.location.search).get("reason") === "reader-required") {
+    formMessage.textContent = "Sign in with a Reader account to access Saved Searches.";
 }

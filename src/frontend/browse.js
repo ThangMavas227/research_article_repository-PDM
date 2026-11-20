@@ -283,4 +283,81 @@ $('clear-filters').addEventListener('click', () => {
     loadPage();
 });
 
-loadPage();
+// A Reader may save the filters that are currently applied to Browse.
+// Do not take values from the input boxes before Search has been submitted.
+function setupReaderSavedSearch() {
+    if (window.RARAuth?.getRole() !== 'reader') return;
+    const openBtn = $('open-save-search');
+    const panel = $('save-search-panel');
+    const form = $('save-search-form');
+    const nameInput = $('save-search-name');
+    const messageEl = $('save-search-message');
+    const saveBtn = $('confirm-save-search');
+    const api = window.RARSavedSearchApi;
+    if (!api) return;
+
+    const showMessage = (message, kind = 'info') => {
+        messageEl.textContent = message;
+        messageEl.dataset.kind = kind;
+        messageEl.hidden = !message;
+    };
+    openBtn.hidden = false;
+    openBtn.addEventListener('click', () => {
+        panel.hidden = false;
+        showMessage('');
+        $('save-search-summary').textContent = `Current filters: ${
+            [state.keyword && `Keyword: ${state.keyword}`,
+             state.year !== null && `Year: ${state.year}`].filter(Boolean).join(' · ') || 'None'}`;
+        nameInput.focus();
+    });
+    $('cancel-save-search').addEventListener('click', () => {
+        panel.hidden = true;
+        showMessage('');
+    });
+    form.addEventListener('submit', async event => {
+        event.preventDefault();
+        if (saveBtn.disabled) return;
+        try {
+            const criteria = api.criteriaFromBrowse(state.keyword, state.year);
+            const name = api.validateName(nameInput.value);
+            saveBtn.disabled = true;
+            await api.create(name, criteria);
+            showMessage(`Saved "${name}". Open Saved Searches from the navigation to run or delete it.`, 'success');
+            nameInput.value = '';
+        } catch (error) {
+            showMessage(error.message, 'error');
+        } finally {
+            saveBtn.disabled = false;
+        }
+    });
+}
+
+// Run searches from My Saved Searches by restoring both query parameters.
+function loadInitialBrowseFilters() {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('keyword') && !params.has('year')) {
+        loadPage();
+        return;
+    }
+    const keyword = params.get('keyword') || '';
+    const yearText = params.get('year') || '';
+    if (yearText && (!/^\d{1,4}$/.test(yearText) || Number(yearText) < 1)) {
+        showState('error', 'Invalid saved search', 'The publication year in the saved search is invalid.');
+        return;
+    }
+    state.keyword = keyword.trim();
+    state.year = yearText ? Number(yearText) : null;
+    $('keyword').value = state.keyword;
+    $('year').value = yearText;
+    state.page = 1;
+    loadPage();
+}
+
+// navigation.js is loaded with defer in index.html and may not be ready
+// when the regular browse.js script runs at the end of the body.
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupReaderSavedSearch, { once: true });
+} else {
+    setupReaderSavedSearch();
+}
+loadInitialBrowseFilters();

@@ -7,6 +7,7 @@
   const NOTICE_KEY = "rar_navigation_notice";
   const ROOT = "index.html";
   const EDITOR = "articleEditor.html";
+  const READER_SAVED = "readerSavedSearches.html";
   const ALLOWED_ROLES = new Set(["admin", "reader"]);
 
   function getSession() {
@@ -82,6 +83,9 @@
 
       append("Browse Articles", ROOT, ROOT);
       append("Dashboard", "dashboard.html", "dashboard.html");
+      if (role === "reader") {
+        append("Saved Searches", READER_SAVED, READER_SAVED);
+      }
       if (role === "admin") {
         append("Manage Content", EDITOR, EDITOR);
       }
@@ -127,6 +131,9 @@
     if (!stored && search.get("access") === "denied") {
       stored = { text: "Manage Content is available to administrators only.", kind: "error" };
     }
+    if (!stored && search.get("access") === "reader-denied") {
+      stored = { text: "Saved Searches is available to Reader accounts only.", kind: "error" };
+    }
     if (stored && typeof stored.text === "string") {
       target.textContent = stored.text;
       target.className = `nav-notice ${stored.kind === "error" ? "nav-notice-error" : ""}`.trim();
@@ -142,6 +149,17 @@
       window.location.replace("login.html?next=articleEditor.html&reason=admin-required");
     } else {
       window.location.replace("index.html?access=denied");
+    }
+    return false;
+  }
+
+  function requireReader() {
+    const role = getRole();
+    if (role === "reader") return true;
+    if (role === "guest") {
+      window.location.replace("login.html?next=readerSavedSearches.html&reason=reader-required");
+    } else {
+      window.location.replace("index.html?access=reader-denied");
     }
     return false;
   }
@@ -175,13 +193,14 @@
 
   function initialize() {
     if (currentPageName() === EDITOR && !requireAdmin()) return;
+    if (currentPageName() === READER_SAVED && !requireReader()) return;
     document.documentElement.classList.remove("auth-pending");
     renderNavigation();
     renderNotice();
   }
 
   window.RARAuth = Object.freeze({ getSession, getRole, saveSession, clearSession,
-    renderNavigation, requireAdmin, logout });
+    renderNavigation, requireAdmin, requireReader, logout });
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initialize);
@@ -191,6 +210,7 @@
   // Handles restored pages from browser back/forward cache after logout/login.
   window.addEventListener("pageshow", () => {
     if (currentPageName() === EDITOR && !requireAdmin()) return;
+    if (currentPageName() === READER_SAVED && !requireReader()) return;
     document.documentElement.classList.remove("auth-pending");
     renderNavigation();
   });
