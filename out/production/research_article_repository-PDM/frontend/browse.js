@@ -1,13 +1,9 @@
-/* Browse/Search: matches GET /api/articles?keyword=&year=&page=1&size=10.
- * Use the real backend only when selected. Mock mode follows the same response contract.
- */
+/* Browse/Search: uses GET /api/articles?keyword=&year=&page=1&size=10. */
 const CONFIG = window.APP_CONFIG;
 const state = {
     page: 1,
     keyword: '',
     year: null,
-    mode: window.getArticleMode(),
-    scenario: 'normal', // mock-only: normal, empty, error
     requestId: 0,
     controller: null
 };
@@ -16,8 +12,6 @@ const $ = id => document.getElementById(id);
 const listEl = $('article-list');
 const statusEl = $('status-region');
 const pagerEl = $('pagination');
-
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 // Backend article: { id, title, year, authors: [{ id, name }] }
 function normalizeArticle(raw) {
@@ -52,23 +46,7 @@ function normalizeResponse(data) {
     return { ...data, items: data.items.map(normalizeArticle) };
 }
 
-async function getArticles({ page, keyword, year, mode, scenario, signal }) {
-    if (mode === 'mock') {
-        await delay(CONFIG.MOCK_DELAY_MS);
-        if (scenario === 'error') throw new Error('Simulated network error (mock mode).');
-        if (!Array.isArray(window.MOCK_ARTICLES)) throw new Error('Mock data is not loaded.');
-        const matched = searchArticles(window.MOCK_ARTICLES, keyword);
-        const source = scenario === 'empty' ? [] : matched.filter(article => year === null || article.year === year);
-        const start = (page - 1) * CONFIG.PAGE_SIZE;
-        return normalizeResponse({
-            items: source.slice(start, start + CONFIG.PAGE_SIZE),
-            page,
-            size: CONFIG.PAGE_SIZE,
-            totalItems: source.length,
-            totalPages: Math.ceil(source.length / CONFIG.PAGE_SIZE)
-        });
-    }
-
+async function getArticles({ page, keyword, year, signal }) {
     // Actual API request. Do not filter or paginate the server's result again.
     const url = new URL(CONFIG.API_URL, window.location.href);
     url.searchParams.set('page', String(page));
@@ -202,8 +180,6 @@ async function loadPage() {
         page: state.page,
         keyword: state.keyword,
         year: state.year,
-        mode: state.mode,
-        scenario: state.scenario,
         signal: state.controller.signal
     };
     showLoading();
@@ -244,7 +220,7 @@ async function loadPage() {
         $('count-pill').textContent = 'Unavailable';
         $('page-label').textContent = '';
         showState('error', 'Could not load articles',
-            err?.name === 'TypeError' && state.mode === 'api'
+            err?.name === 'TypeError'
                 ? `Cannot connect to ${CONFIG.API_URL}. Check that Spring Boot is running on port 8080, MySQL is accessible, and CORS allows this page's origin (${window.location.origin}).`
                 : err.message || 'Something went wrong. Please try again.');
         console.error('[Browse Articles]', err);
@@ -283,24 +259,4 @@ $('clear-filters').addEventListener('click', () => {
     loadPage();
 });
 
-const modeSelect = $('data-mode');
-const scenarioSelect = $('mock-scenario');
-const scenarioLabel = $('mock-scenario-label');
-modeSelect.value = state.mode;
-function updateModeControls() {
-    scenarioLabel.hidden = state.mode !== 'mock';
-}
-modeSelect.addEventListener('change', () => {
-    state.mode = modeSelect.value;
-    window.setArticleMode(state.mode);
-    state.page = 1;
-    updateModeControls();
-    loadPage();
-});
-scenarioSelect.addEventListener('change', () => {
-    state.scenario = scenarioSelect.value;
-    state.page = 1;
-    loadPage();
-});
-updateModeControls();
 loadPage();

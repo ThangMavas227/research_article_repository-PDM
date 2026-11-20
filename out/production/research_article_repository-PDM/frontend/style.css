@@ -249,23 +249,6 @@ article p {
 }
 
 
-/* Data source selector for API / offline mock tests */
-.data-controls {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin: -8px 0 24px;
-    font-size: 14px;
-}
-.data-controls select {
-    padding: 7px 10px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font: inherit;
-    background: white;
-}
-#mock-scenario-label[hidden] { display: none; }
 .info-note {
     padding: 12px 16px;
     border: 1px solid #d1d5db;
