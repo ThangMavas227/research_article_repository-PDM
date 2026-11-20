@@ -516,6 +516,36 @@ button:disabled { cursor: not-allowed; opacity: .58; }
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
 
+
+/* Publication year combobox with reliable dropdown on click. */
+.page-saved .saved-year-combobox { position: relative; width: 100%; }
+.page-saved .saved-year-combobox > input { width: 100%; padding-right: 44px; }
+.page-saved .saved-year-toggle {
+  position: absolute; top: 1px; right: 1px; bottom: 1px; width: 42px;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; border: 0; border-radius: 0 8px 8px 0;
+  color: var(--a-navy, #4a5c70); font: inherit; font-size: 18px; cursor: pointer;
+}
+.page-saved .saved-year-toggle:hover { background: var(--a-navy-faint, #eef0f2); }
+.page-saved .saved-year-toggle:focus-visible { outline: 2px solid #7895b5; outline-offset: -2px; }
+.page-saved .saved-year-menu {
+  position: absolute; top: calc(100% + 5px); left: 0; right: 0;
+  z-index: 50; max-height: 220px; overflow-y: auto;
+  padding: 5px; border: 1px solid var(--a-border-strong, #cec3bb);
+  border-radius: 9px; background: var(--a-white, #fffcf9);
+  box-shadow: 0 12px 26px rgba(28, 34, 45, .14);
+}
+.page-saved .saved-year-menu[hidden] { display: none; }
+.page-saved .saved-year-option {
+  display: block; width: 100%; padding: 9px 11px;
+  text-align: left; border: 0; border-radius: 6px;
+  background: transparent; color: var(--a-ink, #373542);
+  font: inherit; font-size: 14px; cursor: pointer;
+}
+.page-saved .saved-year-option:hover,
+.page-saved .saved-year-option:focus-visible { background: var(--a-navy-faint, #eef0f2); outline: none; }
+.page-saved .saved-year-message { margin: 0; padding: 10px; color: var(--a-muted, #6b6872); font-size: 13px; }
+
 </style><meta content="option-a-inline-2026-11-20" name="rar-ui-theme"/></head>
 <body class="page-saved"><header class="site-header">
 <a aria-label="Research Article Repository – home" class="site-brand" href="index.html">
@@ -529,13 +559,11 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 <div class="saved-searches-intro">
 <div>
 <h2>My Saved Searches</h2>
-<p>Save your article search filters and return to them whenever you need.</p>
 </div>
 <a class="saved-searches-back-link" href="index.html">← Browse articles</a>
 </div>
 <section aria-labelledby="create-search-heading" class="saved-searches-panel">
 <h3 id="create-search-heading">Create a saved search</h3>
-<p class="saved-searches-muted">The current article search supports keyword and an exact publication year.</p>
 <form class="saved-searches-form" id="saved-search-form">
 <div class="saved-searches-fields">
 <div class="saved-searches-field">
@@ -544,8 +572,11 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 </div>
 <div class="saved-searches-field">
 <label for="saved-search-year">Publication year</label>
-<input id="saved-search-year" name="year" type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" list="saved-search-year-options" autocomplete="off" placeholder="Any year" title="Choose an available year or enter a four-digit year"/>
-<datalist id="saved-search-year-options"></datalist>
+<div class="saved-year-combobox" id="saved-year-combobox">
+<input id="saved-search-year" name="year" type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" placeholder="Any year" aria-haspopup="listbox" aria-controls="saved-year-menu" aria-expanded="false" title="Choose a publication year or enter a four-digit year"/>
+<button id="saved-year-toggle" class="saved-year-toggle" type="button" aria-label="Show available publication years" aria-controls="saved-year-menu" aria-expanded="false">&#9662;</button>
+<div id="saved-year-menu" class="saved-year-menu" role="listbox" aria-label="Available publication years" hidden></div>
+</div>
 </div>
 <div class="saved-searches-field">
 <label for="saved-search-name">Search name</label>
@@ -562,14 +593,12 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 <div class="saved-searches-section-header">
 <div>
 <h3 id="my-searches-heading">Saved Searches <span class="saved-searches-count" hidden="" id="saved-search-count"></span></h3>
-<p class="saved-searches-muted">Only searches belonging to your signed-in account are shown.</p>
 </div>
 <button class="saved-searches-button" id="refresh-saved-searches" type="button">Refresh</button>
 </div>
 <p aria-live="polite" class="saved-searches-message" hidden="" id="saved-searches-message" role="status"></p>
 <div aria-live="polite" class="saved-searches-list" id="saved-searches-list"></div>
 </section>
-<p class="saved-searches-footnote">Saved searches with a year range or venue filter are displayed, but cannot be run until the article search API supports those filters.</p>
 </main>
 </body>
 </html>

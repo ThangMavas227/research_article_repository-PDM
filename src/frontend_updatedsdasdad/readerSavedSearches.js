@@ -16,17 +16,100 @@
     const createBtn = $('create-saved-search');
     let isLoading = false;
 
-    // Suggest years present in the real article data.
-    // The input stays editable if the API is unavailable or the year is not listed.
-    async function loadYearSuggestions() {
-        const datalist = $('saved-search-year-options');
-        const apiUrl = window.APP_CONFIG?.API_URL;
-        if (!datalist || !apiUrl) return;
+    // Dropdown choices come from the real Article API, not hardcoded years.
+    const yearBox = $('saved-year-combobox');
+    const yearToggle = $('saved-year-toggle');
+    const yearMenu = $('saved-year-menu');
+    let availableYears = [];
+    let yearsStatus = 'loading';
+    let suppressFocusOpen = false;
 
+    function closeYearMenu() {
+        yearMenu.hidden = true;
+        yearInput.setAttribute('aria-expanded', 'false');
+        yearToggle.setAttribute('aria-expanded', 'false');
+    }
+
+    function showYearMenu(showAll = false) {
+        const filter = showAll ? '' : yearInput.value.trim();
+        yearMenu.replaceChildren();
+        if (yearsStatus === 'loading') {
+            const note = document.createElement('p');
+            note.className = 'saved-year-message';
+            note.textContent = 'Loading available years...';
+            yearMenu.appendChild(note);
+        } else if (yearsStatus === 'error') {
+            const note = document.createElement('p');
+            note.className = 'saved-year-message';
+            note.textContent = 'Could not load years. You can type a year manually.';
+            yearMenu.appendChild(note);
+        } else {
+            const matches = availableYears.filter(value => !filter || value.includes(filter));
+            if (!matches.length) {
+                const note = document.createElement('p');
+                note.className = 'saved-year-message';
+                note.textContent = 'No matching years. You can type another year.';
+                yearMenu.appendChild(note);
+            }
+            for (const value of matches) {
+                const option = document.createElement('button');
+                option.type = 'button';
+                option.className = 'saved-year-option';
+                option.setAttribute('role', 'option');
+                option.setAttribute('aria-selected', String(yearInput.value === value));
+                option.textContent = value;
+                option.addEventListener('click', () => {
+                    yearInput.value = value;
+                    closeYearMenu();
+                    suppressFocusOpen = true;
+                    yearInput.focus();
+                    suppressFocusOpen = false;
+                });
+                yearMenu.appendChild(option);
+            }
+        }
+        yearMenu.hidden = false;
+        yearInput.setAttribute('aria-expanded', 'true');
+        yearToggle.setAttribute('aria-expanded', 'true');
+    }
+
+    yearToggle.addEventListener('click', () => {
+        if (yearMenu.hidden) showYearMenu(true);
+        else closeYearMenu();
+    });
+    yearInput.addEventListener('focus', () => {
+        if (!suppressFocusOpen) showYearMenu(true);
+    });
+    yearInput.addEventListener('input', () => showYearMenu(false));
+    yearInput.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+            closeYearMenu();
+            return;
+        }
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            if (yearMenu.hidden) showYearMenu(true);
+            const firstOption = yearMenu.querySelector('.saved-year-option');
+            firstOption?.focus();
+        }
+    });
+    document.addEventListener('pointerdown', event => {
+        if (!yearBox.contains(event.target)) closeYearMenu();
+    });
+    document.addEventListener('focusin', event => {
+        if (!yearBox.contains(event.target)) closeYearMenu();
+    });
+
+    async function loadYearSuggestions() {
+        const apiUrl = window.APP_CONFIG?.API_URL;
+        if (!apiUrl) {
+            yearsStatus = 'error';
+            if (!yearMenu.hidden) showYearMenu(true);
+            return;
+        }
         const years = new Set();
         let page = 1;
         let totalPages = 1;
-
         try {
             do {
                 const url = new URL(apiUrl, window.location.href);
@@ -36,34 +119,26 @@
                     headers: { Accept: 'application/json' }
                 });
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
                 const data = await response.json();
                 if (!Array.isArray(data.items) || !Number.isInteger(data.totalPages)) {
                     throw new Error('Unexpected article response');
                 }
-
                 for (const article of data.items) {
                     const year = Number(article.year);
                     if (Number.isInteger(year) && year >= 1000 && year <= 9999) {
-                        years.add(year);
+                        years.add(String(year));
                     }
                 }
-
                 totalPages = data.totalPages;
                 page += 1;
             } while (page <= totalPages);
-
-            datalist.replaceChildren(
-                ...[...years].sort((a, b) => b - a).map(year => {
-                    const option = document.createElement('option');
-                    option.value = String(year);
-                    return option;
-                })
-            );
+            availableYears = [...years].sort((a, b) => Number(b) - Number(a));
+            yearsStatus = 'ready';
         } catch (error) {
-            // Do not block Saved Search: users can still enter a year manually.
-            console.warn('[Saved Searches] Could not load year suggestions:', error);
+            yearsStatus = 'error';
+            console.warn('[Saved Searches] Could not load publication years:', error);
         }
+        if (!yearMenu.hidden) showYearMenu(true);
     }
 
     function notify(message, kind = 'info') {
@@ -192,6 +267,7 @@
 
     $('clear-saved-search-form').addEventListener('click', () => {
         form.reset();
+        closeYearMenu();
         notify('');
     });
     refreshBtn.addEventListener('click', async () => {
