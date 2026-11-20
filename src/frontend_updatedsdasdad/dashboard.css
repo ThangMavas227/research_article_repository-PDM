@@ -142,3 +142,66 @@ button:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid
   .page-dashboard .report-filter-row { flex-wrap: wrap; }
   .page-dashboard .report-filter-row button { width: 100%; }
 }
+
+
+/* Dashboard final layout (approved): main chart, four reports, Recent Articles. */
+.page-dashboard .panel.dashboard-chart-panel {
+  margin-top: 0;
+  padding: clamp(22px, 2.7vw, 32px);
+}
+.page-dashboard .dashboard-chart-panel .panel-heading h2 {
+  font-size: clamp(21px, 2.2vw, 26px);
+}
+.page-dashboard .dashboard-chart-panel .year-chart {
+  height: 315px;
+  padding-top: 22px;
+  gap: clamp(7px, 1.3vw, 18px);
+}
+.page-dashboard .dashboard-chart-panel .chart-track {
+  height: 238px;
+}
+.page-dashboard .dashboard-chart-panel .chart-count {
+  font-weight: 700;
+}
+.page-dashboard .dashboard-report-grid {
+  margin-top: 18px;
+  align-items: stretch;
+}
+.page-dashboard .dashboard-report-grid > .stat-card {
+  min-height: 365px;
+  display: flex;
+  flex-direction: column;
+}
+.page-dashboard .dashboard-report-grid .report-list,
+.page-dashboard .dashboard-report-grid .report-year-list {
+  min-width: 0;
+  max-height: 265px;
+}
+.page-dashboard .dashboard-report-grid .stat-value {
+  margin-top: 12px;
+  font-size: clamp(35px, 3.2vw, 48px);
+}
+.page-dashboard .panel.dashboard-recent-panel {
+  margin-top: 22px;
+}
+.page-dashboard .dashboard-recent-panel .recent-list a {
+  overflow-wrap: anywhere;
+}
+
+/* Keep report controls readable on laptops, tablets and mobile. */
+@media (max-width: 1150px) {
+  .page-dashboard .dashboard-report-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .page-dashboard .dashboard-report-grid > .stat-card { min-height: 320px; }
+}
+@media (max-width: 650px) {
+  .page-dashboard .dashboard-report-grid { grid-template-columns: minmax(0, 1fr); }
+  .page-dashboard .dashboard-chart-panel .year-chart { height: 270px; }
+  .page-dashboard .dashboard-chart-panel .chart-track { height: 196px; }
+  .page-dashboard .dashboard-report-grid > .stat-card { min-height: auto; }
+  .page-dashboard .dashboard-recent-panel .recent-list li {
+    flex-wrap: wrap;
+    gap: 3px 10px;
+  }
+}

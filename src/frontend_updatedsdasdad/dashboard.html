@@ -545,7 +545,40 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 </header>
 <div aria-live="polite" class="status-message" id="dashboard-status" role="status">Loading article statistics…</div>
 <button class="retry-button" hidden="" id="retry-dashboard" type="button">Try again</button>
-<section aria-label="Article statistics and reports" class="stats-grid">
+<!-- Dashboard layout: chart first, reports below, recent articles last. -->
+<section aria-labelledby="year-chart-title" class="panel dashboard-chart-panel">
+<div class="panel-heading">
+<h2 id="year-chart-title">Number of Articles per Year</h2>
+<span class="panel-subtitle" id="chart-range-label"></span>
+</div>
+<div aria-label="Number of articles by publication year" class="year-chart" id="year-chart" role="list">
+<p class="placeholder">Loading chart…</p>
+</div>
+</section>
+<section aria-label="Article statistics and reports" class="stats-grid dashboard-report-grid">
+  <!-- Articles by Year Range: controls drive chart and Recent Articles. -->
+  <!-- Existing Year Range remains in position 2 -->
+  <article class="stat-card">
+    <h2>Articles by Year Range</h2>
+    <div class="range-controls">
+      <label for="year-from">From</label>
+      <select aria-label="Start publication year" disabled id="year-from"></select>
+      <label for="year-to">To</label>
+      <select aria-label="End publication year" disabled id="year-to"></select>
+    </div>
+    <p class="stat-value" id="range-total">—</p>
+    <p class="stat-caption">Articles in selected years</p>
+  </article>
+  <!-- Q5: yearly average number of authors. -->
+  <!-- Q5: Average authors per article, grouped by year -->
+  <article class="stat-card report-card" aria-labelledby="q5-title">
+    <h2 id="q5-title">Q5 · Avg. Authors per Article by Year</h2>
+    <p class="report-meta">Calculated by the Backend for each publication year.</p>
+    <div id="q5-list" class="report-year-list" aria-live="polite">
+      <p class="report-placeholder">Loading Q5…</p>
+    </div>
+  </article>
+  <!-- Q3: top cited articles. -->
   <!-- Q3: Top cited articles for a selected subject area -->
   <article class="stat-card report-card" aria-labelledby="q3-title">
     <h2 id="q3-title">Q3 · Top 10 Cited Articles</h2>
@@ -559,20 +592,7 @@ button:disabled { cursor: not-allowed; opacity: .58; }
     <p class="report-meta" id="q3-meta">Top cited publications in the selected subject area.</p>
     <ol id="q3-list" class="report-list" aria-live="polite"><li class="report-placeholder">Loading Q3…</li></ol>
   </article>
-
-  <!-- Existing Year Range remains in position 2 -->
-  <article class="stat-card">
-    <h2>Articles by Year Range</h2>
-    <div class="range-controls">
-      <label for="year-from">From</label>
-      <select aria-label="Start publication year" disabled id="year-from"></select>
-      <label for="year-to">To</label>
-      <select aria-label="End publication year" disabled id="year-to"></select>
-    </div>
-    <p class="stat-value" id="range-total">—</p>
-    <p class="stat-caption">Articles in selected years</p>
-  </article>
-
+  <!-- Q4: authors publishing in all chosen venues. -->
   <!-- Q4: Authors with publications in every chosen venue -->
   <article class="stat-card report-card" aria-labelledby="q4-title">
     <h2 id="q4-title">Q4 · Authors in All Selected Venues</h2>
@@ -586,26 +606,9 @@ button:disabled { cursor: not-allowed; opacity: .58; }
     <p class="report-meta" id="q4-meta">Select 1–20 venues. Matches must have published in every selected venue.</p>
     <ol id="q4-list" class="report-list" aria-live="polite"><li class="report-placeholder">Loading Q4…</li></ol>
   </article>
-
-  <!-- Q5: Average authors per article, grouped by year -->
-  <article class="stat-card report-card" aria-labelledby="q5-title">
-    <h2 id="q5-title">Q5 · Avg. Authors per Article by Year</h2>
-    <p class="report-meta">Calculated by the Backend for each publication year.</p>
-    <div id="q5-list" class="report-year-list" aria-live="polite">
-      <p class="report-placeholder">Loading Q5…</p>
-    </div>
-  </article>
 </section>
-<section aria-labelledby="year-chart-title" class="panel">
-<div class="panel-heading">
-<h2 id="year-chart-title">Number of Articles per Year</h2>
-<span class="panel-subtitle" id="chart-range-label"></span>
-</div>
-<div aria-label="Number of articles by publication year" class="year-chart" id="year-chart" role="list">
-<p class="placeholder">Loading chart…</p>
-</div>
-</section>
-<section aria-labelledby="recent-title" class="panel">
+<!-- The last section stays Recent Articles and follows the year range. -->
+<section aria-labelledby="recent-title" class="panel dashboard-recent-panel">
 <div class="panel-heading">
 <h2 id="recent-title">Recent Articles</h2>
 <span class="panel-subtitle">5 newest publications within selected years</span>
