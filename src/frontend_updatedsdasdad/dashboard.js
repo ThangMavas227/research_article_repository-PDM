@@ -96,7 +96,7 @@ async function loadQ3() {
     return false;
   }
   $("q3-apply").disabled = true;
-  showListMessage("q3-list", "Loading top cited articles…");
+  $("q3-list").replaceChildren();
   try {
     const rows = await fetchReport("top-cited", { areaId });
     if (requestNumber !== q3RequestNumber) return false;
@@ -113,7 +113,7 @@ async function loadQ3() {
         link.textContent = String(row.title ?? row.id);
         const meta = document.createElement("div");
         meta.className = "report-item-meta";
-        meta.textContent = `${row.citationCount} citation(s) · ${row.subjectArea ?? areaId}`;
+        meta.textContent = `${row.citationCount} citation(s)`;
         item.append(link, meta);
         list.appendChild(item);
       }
@@ -256,7 +256,7 @@ function populateVenuePicker(articles) {
       if (box.checked) state.selectedVenueIds.add(venue.id);
       else state.selectedVenueIds.delete(venue.id);
       updateVenueSummary();
-      showListMessage("q4-list", "Click Run Q4 to apply the new venue selection.");
+      $("q4-list").replaceChildren();
     });
     const name = document.createElement("span");
     name.textContent = `${venue.name} (${venue.id})`;
@@ -279,7 +279,7 @@ async function loadQ4() {
     return false;
   }
   $("q4-apply").disabled = true;
-  showListMessage("q4-list", "Loading authors…");
+  $("q4-list").replaceChildren();
   try {
     const rows = await fetchReport("authors-all-venues", { venueIds: venueIds.join(",") });
     if (requestNumber !== q4RequestNumber) return false;
@@ -306,7 +306,7 @@ async function loadQ4() {
 
 // Q5: average authors per article for every publication year returned by BE.
 async function loadQ5() {
-  showYearMessage("Loading yearly author averages…");
+  $("q5-list").replaceChildren();
   try {
     const rows = await fetchReport("average-authors-by-year");
     const list = $("q5-list");
@@ -322,7 +322,7 @@ async function loadQ5() {
       const detail = document.createElement("span");
       const avg = Number(row.averageAuthorsPerArticle);
       main.textContent = `${row.year}: ${Number.isFinite(avg) ? avg.toFixed(2) : "—"}`;
-      detail.textContent = `avg. authors/article · ${row.articles} articles`;
+      detail.textContent = `${row.articles} articles`;
       div.append(main, detail);
       list.appendChild(div);
     }
@@ -369,17 +369,15 @@ async function loadArticleStats() {
 
 async function loadDashboard() {
   $("retry-dashboard").hidden = true;
-  setStatus("Loading Dashboard and Q3/Q4/Q5 reports from Backend…");
 
-  // Q3 and Q5 do not depend on the /api/articles list.
   const [articlesOK, q3OK, q5OK] = await Promise.all([
     loadArticleStats(), loadQ3(), loadQ5()
   ]);
   const q4OK = articlesOK ? await loadQ4() : false;
   const allOK = articlesOK && q3OK && q4OK && q5OK;
   setStatus(allOK
-    ? "Dashboard loaded from Spring Boot API."
-    : "Some dashboard data could not load. Check the report cards and retry.", !allOK);
+    ? ""
+    : "Some dashboard data could not load. Please try again.", !allOK);
   $("retry-dashboard").hidden = allOK;
 }
 

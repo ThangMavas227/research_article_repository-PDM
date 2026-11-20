@@ -103,7 +103,7 @@ async function getArticles({ page, keyword, year, yearFrom, yearTo, venueType, s
 function showLoading() {
     pagerEl.hidden = true;
     statusEl.textContent = 'Loading articles...';
-    $('count-pill').textContent = 'Loading...';
+    $('count-pill').textContent = '';
     $('page-label').textContent = '';
     listEl.replaceChildren();
 

@@ -11,14 +11,58 @@
 <script defer="" src="navigation.js"></script>
 <script defer="" src="dashboard.js"></script>
 <style data-version="2026-11-20-fix" id="option-a-embedded-theme">
-/*
-  RESEARCH ARTICLE REPOSITORY · OPTION A / ACADEMIC LIBRARY
-  Shared design tokens and visual treatment for ALL SIX HTML screens.
-  Place this stylesheet AFTER page-specific stylesheets; it intentionally
-  overrides legacy bright-blue/Arial styling without changing JS behaviour.
-  Font loading: Lora + Nunito Sans via Google Fonts; local fallback is provided.
-*/
 @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Nunito+Sans:wght@400;500;600;700;800&display=swap');
+
+
+  /* ===== Q3 & Q5 UI Improvements ===== */
+
+  /* Reduce spacing below report titles */
+  .page-dashboard .dashboard-report-grid .report-card h2 {
+    min-height: 0;
+    margin: 0 0 10px;
+  }
+
+  /* Add borders around Q3 and Q5 results */
+  .page-dashboard .dashboard-report-grid #q3-list,
+  .page-dashboard .dashboard-report-grid #q5-list {
+    border: 1px solid #ded4cb;
+    border-radius: 9px;
+    background: #fffcf9;
+
+    height: 245px;
+    max-height: 245px;
+
+    padding: 10px 12px;
+    margin-top: 0;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  /* Keep numbering inside the Q3 border */
+  .page-dashboard .dashboard-report-grid #q3-list {
+    padding-left: 32px;
+    margin-top: 8px;
+  }
+
+  /* Reduce spacing around Q3 search controls */
+  .page-dashboard .dashboard-report-grid #q3-form {
+    margin-bottom: 8px;
+  }
+
+  /* Keep Q5 results close to its title */
+  .page-dashboard .dashboard-report-grid #q5-list {
+    margin-top: 0;
+  }
+
+  /*
+    RESEARCH ARTICLE REPOSITORY · OPTION A / ACADEMIC LIBRARY
+    Shared design tokens and visual treatment for ALL SIX HTML screens.
+    Place this stylesheet AFTER page-specific stylesheets; it intentionally
+    overrides legacy bright-blue/Arial styling without changing JS behaviour.
+    Font loading: Lora + Nunito Sans via Google Fonts; local fallback is provided.
+  */
+
 
 :root {
   color-scheme: light;
@@ -427,7 +471,7 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .page-dashboard .page-header {
   display: flex; justify-content: space-between; align-items: flex-start;
   gap: 20px; border-radius: 0; background: none; box-shadow: none;
-  padding: 0 0 25px; margin: 0;
+  padding: 0 0 12px; margin: 0;
   border: 0;
 }
 .page-dashboard .page-header h1 { font-family: var(--a-serif); color: var(--a-ink); font-size: clamp(29px,3.4vw,40px); font-weight: 600; margin: 0; }
@@ -527,6 +571,135 @@ button:disabled { cursor: not-allowed; opacity: .58; }
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
 
+
+/* ===== Dashboard: approved chart-filter + three-report layout ===== */
+.page-dashboard .page-header { padding-bottom: 12px; }
+.page-dashboard #dashboard-status:not(.error) {
+  display: none !important;
+  margin: 0;
+  min-height: 0;
+}
+.page-dashboard #dashboard-status.error {
+  display: block !important;
+  margin: 0 0 14px;
+  min-height: 0;
+}
+.page-dashboard .dashboard-chart-panel {
+  margin-top: 0;
+}
+.page-dashboard .dashboard-chart-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--a-border);
+}
+.page-dashboard .dashboard-chart-header h2 {
+  margin: 0;
+  flex: 1 1 280px;
+  min-width: 0;
+}
+.page-dashboard .chart-filter-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px 15px;
+  min-width: 0;
+}
+.page-dashboard .chart-filter-title {
+  white-space: nowrap;
+  font-family: var(--a-serif);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--a-ink);
+}
+.page-dashboard .chart-filter-group .range-controls {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: nowrap;
+}
+.page-dashboard .chart-filter-group .range-controls label {
+  font-size: 12px;
+  color: var(--a-muted);
+}
+.page-dashboard .chart-filter-group .range-controls select {
+  min-width: 76px;
+  width: auto;
+  padding: 7px 10px;
+  min-height: 38px;
+  font-size: 13px;
+  background: var(--a-white);
+  border: 1px solid var(--a-border-strong);
+  border-radius: 9px;
+}
+.page-dashboard .chart-range-summary {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+  min-height: 22px;
+}
+.page-dashboard .chart-range-summary .panel-subtitle {
+  font-size: 12px;
+  color: var(--a-muted);
+}
+.page-dashboard .dashboard-chart-panel .year-chart {
+  margin-top: 0;
+  padding-top: 12px;
+}
+.page-dashboard .dashboard-report-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
+  width: 100%;
+}
+.page-dashboard .dashboard-report-grid > .report-card {
+  width: 100%;
+  min-width: 0;
+  min-height: 340px;
+}
+.page-dashboard .dashboard-report-grid .report-card h2 {
+  min-height: 0;
+  margin: 0 0 12px;
+}
+.page-dashboard .dashboard-report-grid .report-list,
+.page-dashboard .dashboard-report-grid .report-year-list {
+  min-width: 0;
+  overflow-x: hidden;
+}
+@media (max-width: 1080px) {
+  .page-dashboard .dashboard-report-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 720px) {
+  .page-dashboard .dashboard-chart-header {
+    align-items: flex-start;
+  }
+  .page-dashboard .chart-filter-group {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .page-dashboard .dashboard-report-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .page-dashboard .dashboard-report-grid > .report-card {
+    min-height: 0;
+  }
+}
+@media (max-width: 420px) {
+  .page-dashboard .chart-filter-group .range-controls {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .page-dashboard .chart-filter-title { white-space: normal; }
+}
+
 </style><meta content="option-a-inline-2026-11-20" name="rar-ui-theme"/></head>
 <body class="page-dashboard"><header class="site-header">
 <a aria-label="Research Article Repository – home" class="site-brand" href="index.html">
@@ -540,78 +713,69 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 </div>
 <header class="page-header">
 <div>
-<h1>Article Statistics Dashboard</h1><p class="dashboard-subtitle">An overview of research articles and publication activity.</p>
+<h1>Article Statistics Dashboard</h1>
 </div>
 </header>
-<div aria-live="polite" class="status-message" id="dashboard-status" role="status">Loading article statistics…</div>
+<div aria-live="polite" class="status-message" id="dashboard-status" role="status"></div>
 <button class="retry-button" hidden="" id="retry-dashboard" type="button">Try again</button>
-<!-- Dashboard layout: chart first, reports below, recent articles last. -->
+<!-- Approved layout: year filter in chart header; 3 balanced report cards below. -->
 <section aria-labelledby="year-chart-title" class="panel dashboard-chart-panel">
-<div class="panel-heading">
-<h2 id="year-chart-title">Number of Articles per Year</h2>
-<span class="panel-subtitle" id="chart-range-label"></span>
-</div>
-<div aria-label="Number of articles by publication year" class="year-chart" id="year-chart" role="list">
-<p class="placeholder">Loading chart…</p>
-</div>
-</section>
-<section aria-label="Article statistics and reports" class="stats-grid dashboard-report-grid">
-  <!-- Articles by Year Range: controls drive chart and Recent Articles. -->
-  <!-- Existing Year Range remains in position 2 -->
-  <article class="stat-card">
-    <h2>Articles by Year Range</h2>
-    <div class="range-controls">
+  <div class="panel-heading dashboard-chart-header">
+    <h2 id="year-chart-title">Number of Articles per Year</h2>
+    <div class="chart-filter-group" role="group" aria-label="Articles by Year Range">
+      <span class="chart-filter-title">Articles by Year Range</span>
+      <div class="range-controls">
       <label for="year-from">From</label>
       <select aria-label="Start publication year" disabled id="year-from"></select>
       <label for="year-to">To</label>
       <select aria-label="End publication year" disabled id="year-to"></select>
     </div>
-    <p class="stat-value" id="range-total">—</p>
-    <p class="stat-caption">Articles in selected years</p>
-  </article>
-  <!-- Q5: yearly average number of authors. -->
-  <!-- Q5: Average authors per article, grouped by year -->
+    </div>
+  </div>
+  <div class="chart-range-summary">
+    <span class="panel-subtitle" id="chart-range-label"></span>
+    <span class="sr-only" id="range-total" aria-live="polite">—</span>
+  </div>
+  <div aria-label="Number of articles by publication year" class="year-chart" id="year-chart" role="list">
+    <p class="placeholder">Loading chart…</p>
+  </div>
+</section>
+<section aria-label="Research statistics and reports" class="stats-grid dashboard-report-grid">
   <article class="stat-card report-card" aria-labelledby="q5-title">
-    <h2 id="q5-title">Q5 · Avg. Authors per Article by Year</h2>
-    <p class="report-meta">Calculated by the Backend for each publication year.</p>
+    <h2 id="q5-title">Average Authors per Article by Year</h2>
     <div id="q5-list" class="report-year-list" aria-live="polite">
-      <p class="report-placeholder">Loading Q5…</p>
+      <p class="report-placeholder"></p>
     </div>
   </article>
-  <!-- Q3: top cited articles. -->
-  <!-- Q3: Top cited articles for a selected subject area -->
   <article class="stat-card report-card" aria-labelledby="q3-title">
-    <h2 id="q3-title">Q3 · Top 10 Cited Articles</h2>
+    <h2 id="q3-title">Top 10 Cited Articles</h2>
     <form class="report-filter" id="q3-form">
-      <label for="q3-area">Subject Area ID</label>
+      <label for="q3-area"></label>
       <div class="report-filter-row">
         <input id="q3-area" name="areaId" type="text" value="SA001" placeholder="e.g. SA001" required autocomplete="off" />
-        <button type="submit" id="q3-apply">Run Q3</button>
+        <button type="submit" id="q3-apply">Run</button>
       </div>
     </form>
     <p class="report-meta" id="q3-meta">Top cited publications in the selected subject area.</p>
-    <ol id="q3-list" class="report-list" aria-live="polite"><li class="report-placeholder">Loading Q3…</li></ol>
+    <ol id="q3-list" class="report-list" aria-live="polite"><li class="report-placeholder"></li></ol>
   </article>
-  <!-- Q4: authors publishing in all chosen venues. -->
-  <!-- Q4: Authors with publications in every chosen venue -->
   <article class="stat-card report-card" aria-labelledby="q4-title">
-    <h2 id="q4-title">Q4 · Authors in All Selected Venues</h2>
+    <h2 id="q4-title">Authors in All Selected Venues</h2>
     <details class="report-venue-picker">
       <summary id="q4-summary">Choose venues</summary>
       <div class="report-venue-options" id="q4-venue-options" role="group" aria-label="Choose venues for Q4">
         <p class="report-placeholder">Loading venues…</p>
       </div>
     </details>
-    <button type="button" class="report-run-button" id="q4-apply">Run Q4</button>
+    <button type="button" class="report-run-button" id="q4-apply">Run</button>
     <p class="report-meta" id="q4-meta">Select 1–20 venues. Matches must have published in every selected venue.</p>
-    <ol id="q4-list" class="report-list" aria-live="polite"><li class="report-placeholder">Loading Q4…</li></ol>
+    <ol id="q4-list" class="report-list" aria-live="polite"><li class="report-placeholder"></li></ol>
   </article>
 </section>
 <!-- The last section stays Recent Articles and follows the year range. -->
 <section aria-labelledby="recent-title" class="panel dashboard-recent-panel">
 <div class="panel-heading">
 <h2 id="recent-title">Recent Articles</h2>
-<span class="panel-subtitle">5 newest publications within selected years</span>
 </div>
 <ul class="recent-list" id="recent-articles">
 <li class="placeholder">Loading articles…</li>

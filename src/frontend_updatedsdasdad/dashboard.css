@@ -205,3 +205,20 @@ button:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid
     gap: 3px 10px;
   }
 }
+
+.page-dashboard #dashboard-status:empty,
+.page-dashboard #dashboard-status[hidden] {
+  display: none !important;
+  margin: 0;
+  min-height: 0;
+}
+
+.page-dashboard #q3-meta,
+.page-dashboard #q4-meta {
+  display: none !important;
+}
+
+#q4-list {
+  list-style: none;
+  padding-left: 0;
+}
