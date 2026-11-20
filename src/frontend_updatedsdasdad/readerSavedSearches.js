@@ -66,10 +66,10 @@
         if (params === null) {
             const warning = document.createElement('span');
             warning.className = 'saved-searches-limitation';
-            warning.textContent = 'Requires article search API support for ranges or venue type.';
+            warning.textContent = 'This saved search contains unsupported or invalid filter values.';
             details.appendChild(warning);
             runBtn.disabled = true;
-            runBtn.title = 'The current article API supports only keyword and an exact year.';
+            runBtn.title = 'Check the saved search filters. Valid venue types are J or C and years must be 1–9999.';
         } else {
             runBtn.addEventListener('click', () => {
                 const query = params.toString();

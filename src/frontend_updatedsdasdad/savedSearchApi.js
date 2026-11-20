@@ -95,19 +95,30 @@
         return parts.join(' · ') || 'No filters';
     }
 
+    // Build canonical Browse API filters for every valid saved search.
+    // `year` is legacy and must never be combined with yearFrom/yearTo.
     function getBrowseParams(criteria) {
         const c = criteria || {};
-        // Do not pretend a broader saved search is an exact-year / keyword search.
-        if (c.venueType ||
-            (c.yearFrom != null && c.yearTo == null) ||
-            (c.yearFrom == null && c.yearTo != null) ||
-            (c.yearFrom != null && c.yearTo != null && c.yearFrom !== c.yearTo)) {
-            return null;
-        }
         const params = new URLSearchParams();
         const keyword = typeof c.keyword === 'string' ? c.keyword.trim() : '';
+        if (keyword.length > 255) return null;
         if (keyword) params.set('keyword', keyword);
-        if (c.yearFrom != null) params.set('year', String(c.yearFrom));
+
+        const parseBound = raw => {
+            if (raw == null || raw === '') return null;
+            const n = Number(raw);
+            return Number.isInteger(n) && n >= 1 && n <= 9999 ? n : NaN;
+        };
+        const from = parseBound(c.yearFrom);
+        const to = parseBound(c.yearTo);
+        if (Number.isNaN(from) || Number.isNaN(to) ||
+            (from !== null && to !== null && from > to)) return null;
+        if (from !== null) params.set('yearFrom', String(from));
+        if (to !== null) params.set('yearTo', String(to));
+
+        const venue = String(c.venueType ?? '').trim().toUpperCase();
+        if (venue && venue !== 'J' && venue !== 'C') return null;
+        if (venue) params.set('venueType', venue);
         return params;
     }
 

@@ -4,6 +4,9 @@ const state = {
     page: 1,
     keyword: '',
     year: null,
+    yearFrom: null,
+    yearTo: null,
+    venueType: null,
     requestId: 0,
     controller: null
 };
@@ -14,8 +17,8 @@ const statusEl = $('status-region');
 const pagerEl = $('pagination');
 
 // API article shape: { id, title, year, doi, abstract, authors, references, citedBy }.
-// Preserve article fields returned by the API for rendering; the detail page
-// fetches fresh data when opened, instead of relying on a cached selection.
+// Keep all detail fields when normalizing: the selected article is saved in sessionStorage
+// and articleDetail.js reads it after navigation.
 function normalizeArticle(raw) {
     const validId = (typeof raw?.id === 'string' && raw.id.trim() !== '') ||
         (typeof raw?.id === 'number' && Number.isInteger(raw.id));
@@ -70,17 +73,23 @@ function normalizeResponse(data) {
     return { ...data, items: data.items.map(normalizeArticle) };
 }
 
-async function getArticles({ page, keyword, year, signal }) {
+async function getArticles({ page, keyword, year, yearFrom, yearTo, venueType, signal }) {
     // The backend filters and paginates. Do not filter its results again.
     const url = new URL(CONFIG.API_URL, window.location.href);
     url.searchParams.set('page', String(page));
     url.searchParams.set('size', String(CONFIG.PAGE_SIZE));
     if (keyword) url.searchParams.set('keyword', keyword);
-    if (year !== null) url.searchParams.set('year', String(year));
+    // Never combine legacy exact-year with the canonical year range.
+    if (year !== null) {
+        url.searchParams.set('year', String(year));
+    } else {
+        if (yearFrom !== null) url.searchParams.set('yearFrom', String(yearFrom));
+        if (yearTo !== null) url.searchParams.set('yearTo', String(yearTo));
+    }
+    if (venueType) url.searchParams.set('venueType', venueType);
 
     const response = await fetch(url, {
         method: 'GET',
-        cache: 'no-store',
         headers: { Accept: 'application/json' },
         signal
     });
@@ -147,6 +156,12 @@ function showState(kind, title, message) {
     listEl.appendChild(wrapper);
 }
 
+function rememberArticle(article) {
+    try {
+        sessionStorage.setItem(CONFIG.SELECTED_ARTICLE_KEY, JSON.stringify(article));
+    } catch (_) { /* detail page will explain that article data is not available */ }
+}
+
 function renderArticles(items) {
     listEl.replaceChildren();
     for (const article of items) {
@@ -157,6 +172,7 @@ function renderArticles(items) {
         const link = document.createElement('a');
         link.href = `articleDetail.html?id=${encodeURIComponent(article.id)}`;
         link.textContent = article.title;
+        link.addEventListener('click', () => rememberArticle(article));
         title.appendChild(link);
 
         const meta = document.createElement('div');
@@ -190,6 +206,28 @@ function renderPager(page, totalPages) {
     $('next-btn').disabled = page >= totalPages;
 }
 
+// The Browse form has only an exact Year input. Make advanced filters visible
+// when they were applied from a Saved Search rather than silently hiding them.
+function activeAdvancedFiltersSummary() {
+    if (state.yearFrom === null && state.yearTo === null && !state.venueType) return '';
+    const criteria = {
+        keyword: state.keyword,
+        yearFrom: state.yearFrom,
+        yearTo: state.yearTo,
+        venueType: state.venueType
+    };
+    const readable = window.RARSavedSearchApi?.readableCriteria(criteria) || 'Advanced filters';
+    return `Active saved-search filters: ${readable}. Press Search to start a new search, or Clear to reset.`;
+}
+
+function clearSearchQueryFromUrl() {
+    const url = new URL(window.location.href);
+    for (const key of ['keyword', 'year', 'yearFrom', 'yearTo', 'venueType']) {
+        url.searchParams.delete(key);
+    }
+    window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+}
+
 async function loadPage() {
     const requestId = ++state.requestId;
     if (state.controller) state.controller.abort();
@@ -198,6 +236,9 @@ async function loadPage() {
         page: state.page,
         keyword: state.keyword,
         year: state.year,
+        yearFrom: state.yearFrom,
+        yearTo: state.yearTo,
+        venueType: state.venueType,
         signal: state.controller.signal
     };
     showLoading();
@@ -213,14 +254,16 @@ async function loadPage() {
             return;
         }
         state.page = result.page;
-        statusEl.textContent = '';
+        statusEl.textContent = activeAdvancedFiltersSummary();
         $('count-pill').textContent = `${result.totalItems} article${result.totalItems === 1 ? '' : 's'}`;
 
         if (result.totalItems === 0 || result.items.length === 0) {
             $('page-label').textContent = '';
             const criteria = [
                 state.keyword ? `keyword "${state.keyword}"` : null,
-                state.year !== null ? `year ${state.year}` : null
+                state.year !== null ? `year ${state.year}` : null,
+                state.yearFrom !== null || state.yearTo !== null ? `years ${state.yearFrom ?? 'Any'}–${state.yearTo ?? 'Any'}` : null,
+                state.venueType ? `venue ${state.venueType === 'J' ? 'Journal' : 'Conference'}` : null
             ].filter(Boolean).join(' and ');
             showState('empty', 'No articles found', criteria
                 ? `No articles match ${criteria}. Try different filters.`
@@ -265,7 +308,11 @@ $('browse-filter-form').addEventListener('submit', event => {
     }
     state.keyword = $('keyword').value.trim();
     state.year = yearText ? Number(yearText) : null;
+    state.yearFrom = null;
+    state.yearTo = null;
+    state.venueType = null;
     state.page = 1;
+    clearSearchQueryFromUrl();
     loadPage();
 });
 $('clear-filters').addEventListener('click', () => {
@@ -273,7 +320,11 @@ $('clear-filters').addEventListener('click', () => {
     $('year').value = '';
     state.keyword = '';
     state.year = null;
+    state.yearFrom = null;
+    state.yearTo = null;
+    state.venueType = null;
     state.page = 1;
+    clearSearchQueryFromUrl();
     loadPage();
 });
 
@@ -290,6 +341,20 @@ function setupReaderSavedSearch() {
     const api = window.RARSavedSearchApi;
     if (!api) return;
 
+    // Preserve the canonical filters when a Reader saves an advanced search
+    // that was just run from My Saved Searches.
+    const currentCriteria = () => {
+        if (state.yearFrom !== null || state.yearTo !== null || state.venueType) {
+            return {
+                ...(state.keyword ? { keyword: state.keyword } : {}),
+                ...(state.yearFrom !== null ? { yearFrom: state.yearFrom } : {}),
+                ...(state.yearTo !== null ? { yearTo: state.yearTo } : {}),
+                ...(state.venueType ? { venueType: state.venueType } : {})
+            };
+        }
+        return api.criteriaFromBrowse(state.keyword, state.year);
+    };
+
     const showMessage = (message, kind = 'info') => {
         messageEl.textContent = message;
         messageEl.dataset.kind = kind;
@@ -299,9 +364,14 @@ function setupReaderSavedSearch() {
     openBtn.addEventListener('click', () => {
         panel.hidden = false;
         showMessage('');
-        $('save-search-summary').textContent = `Current filters: ${
-            [state.keyword && `Keyword: ${state.keyword}`,
-             state.year !== null && `Year: ${state.year}`].filter(Boolean).join(' · ') || 'None'}`;
+        let criteria;
+        try {
+            criteria = currentCriteria();
+        } catch (_) {
+            criteria = {};
+        }
+        $('save-search-summary').textContent =
+            `Current filters: ${api.readableCriteria(criteria)}`;
         nameInput.focus();
     });
     $('cancel-save-search').addEventListener('click', () => {
@@ -312,7 +382,7 @@ function setupReaderSavedSearch() {
         event.preventDefault();
         if (saveBtn.disabled) return;
         try {
-            const criteria = api.criteriaFromBrowse(state.keyword, state.year);
+            const criteria = currentCriteria();
             const name = api.validateName(nameInput.value);
             saveBtn.disabled = true;
             await api.create(name, criteria);
@@ -326,25 +396,62 @@ function setupReaderSavedSearch() {
     });
 }
 
-// Run searches from My Saved Searches by restoring both query parameters.
+// Restore Saved Search filters from the URL, including canonical range/venue.
+// Legacy `year` URLs are still supported. Do not send both year and yearFrom/To.
 function loadInitialBrowseFilters() {
     const params = new URLSearchParams(window.location.search);
-    if (!params.has('keyword') && !params.has('year')) {
+    if (!['keyword', 'year', 'yearFrom', 'yearTo', 'venueType'].some(key => params.has(key))) {
         loadPage();
         return;
     }
-    const keyword = params.get('keyword') || '';
-    const yearText = params.get('year') || '';
-    if (yearText && (!/^\d{1,4}$/.test(yearText) || Number(yearText) < 1)) {
-        showState('error', 'Invalid saved search', 'The publication year in the saved search is invalid.');
-        return;
+
+    try {
+        const parseYear = (key) => {
+            const text = params.get(key);
+            if (text === null || text.trim() === '') return null;
+            if (!/^\d{1,4}$/.test(text) || Number(text) < 1) {
+                throw new Error(`${key} must be between 1 and 9999.`);
+            }
+            return Number(text);
+        };
+        const year = parseYear('year');
+        let from = parseYear('yearFrom');
+        let to = parseYear('yearTo');
+        const venue = (params.get('venueType') || '').trim().toUpperCase() || null;
+        if (year !== null && (from !== null || to !== null)) {
+            throw new Error('year cannot be combined with yearFrom or yearTo.');
+        }
+        if (from !== null && to !== null && from > to) {
+            throw new Error('yearFrom must not exceed yearTo.');
+        }
+        if (venue && !['J', 'C'].includes(venue)) {
+            throw new Error('venueType must be J (Journal) or C (Conference).');
+        }
+
+        state.keyword = (params.get('keyword') || '').trim();
+        state.year = year;
+        state.yearFrom = from;
+        state.yearTo = to;
+        state.venueType = venue;
+
+        // Show an exact-year Saved Search in the existing Year field when no
+        // venue filter is active. This keeps the old Browse form intuitive.
+        if (year === null && from !== null && from === to && !venue) {
+            state.year = from;
+            state.yearFrom = null;
+            state.yearTo = null;
+        }
+
+        $('keyword').value = state.keyword;
+        $('year').value = state.year === null ? '' : String(state.year);
+        state.page = 1;
+        loadPage();
+    } catch (error) {
+        statusEl.textContent = '';
+        $('count-pill').textContent = '';
+        $('page-label').textContent = '';
+        showState('error', 'Invalid saved search', error.message);
     }
-    state.keyword = keyword.trim();
-    state.year = yearText ? Number(yearText) : null;
-    $('keyword').value = state.keyword;
-    $('year').value = yearText;
-    state.page = 1;
-    loadPage();
 }
 
 // navigation.js is loaded with defer in index.html and may not be ready
