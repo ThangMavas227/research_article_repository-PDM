@@ -14,8 +14,8 @@ const statusEl = $('status-region');
 const pagerEl = $('pagination');
 
 // API article shape: { id, title, year, doi, abstract, authors, references, citedBy }.
-// Keep all detail fields when normalizing: the selected article is saved in sessionStorage
-// and articleDetail.js reads it after navigation.
+// Preserve article fields returned by the API for rendering; the detail page
+// fetches fresh data when opened, instead of relying on a cached selection.
 function normalizeArticle(raw) {
     const validId = (typeof raw?.id === 'string' && raw.id.trim() !== '') ||
         (typeof raw?.id === 'number' && Number.isInteger(raw.id));
@@ -80,6 +80,7 @@ async function getArticles({ page, keyword, year, signal }) {
 
     const response = await fetch(url, {
         method: 'GET',
+        cache: 'no-store',
         headers: { Accept: 'application/json' },
         signal
     });
@@ -146,12 +147,6 @@ function showState(kind, title, message) {
     listEl.appendChild(wrapper);
 }
 
-function rememberArticle(article) {
-    try {
-        sessionStorage.setItem(CONFIG.SELECTED_ARTICLE_KEY, JSON.stringify(article));
-    } catch (_) { /* detail page will explain that article data is not available */ }
-}
-
 function renderArticles(items) {
     listEl.replaceChildren();
     for (const article of items) {
@@ -162,7 +157,6 @@ function renderArticles(items) {
         const link = document.createElement('a');
         link.href = `articleDetail.html?id=${encodeURIComponent(article.id)}`;
         link.textContent = article.title;
-        link.addEventListener('click', () => rememberArticle(article));
         title.appendChild(link);
 
         const meta = document.createElement('div');

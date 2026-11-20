@@ -4,6 +4,5 @@ window.APP_CONFIG = Object.freeze({
     AUTH_BASE_URL: 'http://localhost:8080',
     AUTH_LOGOUT_PATH: '/api/auth/logout',
     SAVED_SEARCHES_API_URL: 'http://localhost:8080/api/saved-searches',
-    PAGE_SIZE: 10,
-    SELECTED_ARTICLE_KEY: 'research-repo-api-selected-article-v1'
+    PAGE_SIZE: 10
 });

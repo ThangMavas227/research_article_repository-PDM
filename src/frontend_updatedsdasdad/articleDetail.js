@@ -1,24 +1,10 @@
-/* Article Detail: backend data from GET /api/articles. */
+/* Article Detail: always retrieve the latest record from the Spring Boot API.
+ * Do not read sessionStorage: previously selected articles may be stale after Admin edits.
+ */
 const params = new URLSearchParams(window.location.search);
 const articleId = params.get('id');
 const detailEl = document.getElementById('articleDetail');
-
-function cachedArticle() {
-    try {
-        const json = sessionStorage.getItem(window.APP_CONFIG.SELECTED_ARTICLE_KEY);
-        const item = json ? JSON.parse(json) : null;
-        return item && String(item.id) === articleId &&
-            typeof item.title === 'string' && Array.isArray(item.authors) ? item : null;
-    } catch (_) {
-        return null;
-    }
-}
-
-function rememberArticle(article) {
-    try {
-        sessionStorage.setItem(window.APP_CONFIG.SELECTED_ARTICLE_KEY, JSON.stringify(article));
-    } catch (_) { /* Browsing remains usable without sessionStorage. */ }
-}
+let latestRequestId = 0;
 
 function showMessage(title, message) {
     detailEl.replaceChildren();
@@ -69,7 +55,7 @@ function renderApiCitations(items, containerId, emptyTitle, emptyMessage) {
         const title = document.createElement('h3');
         title.className = 'article-title';
         const link = document.createElement('a');
-        // The target page loads article data from the list API when not already cached.
+        // The target page always retrieves a fresh article record from the API.
         link.href = `articleDetail.html?id=${encodeURIComponent(String(item.id))}`;
         link.textContent = item.title;
         title.appendChild(link);
@@ -111,7 +97,10 @@ async function findArticleFromApi(id) {
     let page = 1;
     while (true) {
         url.searchParams.set('page', String(page));
-        const response = await fetch(url, { headers: { Accept: 'application/json' } });
+        const response = await fetch(url, {
+            cache: 'no-store',
+            headers: { Accept: 'application/json' }
+        });
         if (!response.ok) throw new Error(`Backend request failed (HTTP ${response.status}).`);
         const data = await response.json();
         if (!data || !Array.isArray(data.items) || !Number.isInteger(data.totalPages) || data.totalPages < 0) {
@@ -125,30 +114,52 @@ async function findArticleFromApi(id) {
 }
 
 async function initDetail() {
+    const requestId = ++latestRequestId;
     if (!articleId) {
         showMessage('Article not found', 'No article ID was supplied in the URL.');
         return;
     }
-    // Use only API-backed cached records (separate storage key from older builds).
-    let article = cachedArticle();
-    if (article && Array.isArray(article.references) && Array.isArray(article.citedBy)) {
-        renderDetail(article);
+
+    // Show a loading state instead of displaying old article fields during refresh.
+    const title = document.getElementById('detail-title');
+    if (!title) {
+        // The original markup can be replaced by an error/not-found message.
+        window.location.reload();
         return;
     }
-    document.getElementById('detail-title').textContent = 'Loading article details...';
+    title.textContent = 'Loading article details...';
+    for (const id of ['detail-authors', 'detail-year', 'detail-doi', 'detail-abstract']) {
+        document.getElementById(id).textContent = '';
+    }
+    document.getElementById('references-list').replaceChildren();
+    document.getElementById('cited-by-list').replaceChildren();
+    document.getElementById('detail-api-note').hidden = true;
+
     try {
-        article = await findArticleFromApi(articleId);
+        // Always re-fetch, even if a previous visit put this article in sessionStorage.
+        const article = await findArticleFromApi(articleId);
+        if (requestId !== latestRequestId) return;
         if (!article) {
             showMessage('Article not found', 'No article with this ID was found in the backend.');
             return;
         }
-        rememberArticle(article);
         renderDetail(article);
     } catch (error) {
+        if (requestId !== latestRequestId) return;
         console.error('[Article Detail]', error);
         showMessage('Could not load article details',
             'Could not load data from the backend. Check that Spring Boot and MySQL are running, then try again.');
     }
 }
+
+// Browser back/forward cache (bfcache) can restore an old DOM without rerunning JS.
+window.addEventListener('pageshow', event => {
+    if (event.persisted) window.location.reload();
+});
+
+// If an Admin edited the article in another tab, re-check when this tab becomes visible.
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) initDetail();
+});
 
 initDetail();
