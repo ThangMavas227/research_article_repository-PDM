@@ -66,6 +66,7 @@ function renderDetail(article) {
     document.getElementById('detail-authors').textContent =
         article.authors.length ? article.authors.map(a => a.name).join(', ') : 'Unknown author';
     document.getElementById('detail-year').textContent = String(article.year);
+    document.getElementById('detail-venue').textContent = article.venueName?.trim() || article.venueId || 'Not available';
 
     document.getElementById('detail-doi').textContent = article.doi?.trim() || 'Not available';
     document.getElementById('detail-abstract').textContent = article.abstract?.trim() || 'Abstract not available.';
@@ -114,7 +115,7 @@ async function initDetail() {
         return;
     }
     title.textContent = 'Loading article details...';
-    for (const id of ['detail-authors', 'detail-year', 'detail-doi', 'detail-abstract']) {
+    for (const id of ['detail-authors', 'detail-year', 'detail-venue', 'detail-doi', 'detail-abstract']) {
         document.getElementById(id).textContent = '';
     }
     document.getElementById('references-list').replaceChildren();
