@@ -517,34 +517,25 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 }
 
 
-/* Publication year combobox with reliable dropdown on click. */
-.page-saved .saved-year-combobox { position: relative; width: 100%; }
-.page-saved .saved-year-combobox > input { width: 100%; padding-right: 44px; }
-.page-saved .saved-year-toggle {
-  position: absolute; top: 1px; right: 1px; bottom: 1px; width: 42px;
-  display: flex; align-items: center; justify-content: center;
-  background: transparent; border: 0; border-radius: 0 8px 8px 0;
-  color: var(--a-navy, #4a5c70); font: inherit; font-size: 18px; cursor: pointer;
-}
-.page-saved .saved-year-toggle:hover { background: var(--a-navy-faint, #eef0f2); }
-.page-saved .saved-year-toggle:focus-visible { outline: 2px solid #7895b5; outline-offset: -2px; }
-.page-saved .saved-year-menu {
-  position: absolute; top: calc(100% + 5px); left: 0; right: 0;
-  z-index: 50; max-height: 220px; overflow-y: auto;
-  padding: 5px; border: 1px solid var(--a-border-strong, #cec3bb);
+/* Publication year: native select, populated from /api/articles by JavaScript. */
+.page-saved .saved-searches-field #saved-search-year {
+  display: block; width: 100%; min-width: 0; height: 47px;
+  padding: 10px 38px 10px 12px;
+  border: 1px solid var(--a-border-strong, #cec3bb);
   border-radius: 9px; background: var(--a-white, #fffcf9);
-  box-shadow: 0 12px 26px rgba(28, 34, 45, .14);
+  color: var(--a-ink, #373542); font: inherit;
+  cursor: pointer;
 }
-.page-saved .saved-year-menu[hidden] { display: none; }
-.page-saved .saved-year-option {
-  display: block; width: 100%; padding: 9px 11px;
-  text-align: left; border: 0; border-radius: 6px;
-  background: transparent; color: var(--a-ink, #373542);
-  font: inherit; font-size: 14px; cursor: pointer;
+.page-saved .saved-searches-field #saved-search-year:focus-visible {
+  outline: 2px solid #7895b5; outline-offset: 2px;
 }
-.page-saved .saved-year-option:hover,
-.page-saved .saved-year-option:focus-visible { background: var(--a-navy-faint, #eef0f2); outline: none; }
-.page-saved .saved-year-message { margin: 0; padding: 10px; color: var(--a-muted, #6b6872); font-size: 13px; }
+.page-saved .saved-searches-field #saved-search-year:disabled { opacity: .72; cursor: progress; }
+.page-saved .saved-year-message {
+  margin: 6px 0 0; font-size: 12px; color: var(--a-muted, #6b6872);
+}
+.page-saved .saved-year-message[data-kind="error"] {
+  color: var(--a-danger, #b42318);
+}
 
 </style><meta content="option-a-inline-2026-11-20" name="rar-ui-theme"/></head>
 <body class="page-saved"><header class="site-header">
@@ -572,11 +563,10 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 </div>
 <div class="saved-searches-field">
 <label for="saved-search-year">Publication year</label>
-<div class="saved-year-combobox" id="saved-year-combobox">
-<input id="saved-search-year" name="year" type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" placeholder="Any year" aria-haspopup="listbox" aria-controls="saved-year-menu" aria-expanded="false" title="Choose a publication year or enter a four-digit year"/>
-<button id="saved-year-toggle" class="saved-year-toggle" type="button" aria-label="Show available publication years" aria-controls="saved-year-menu" aria-expanded="false">&#9662;</button>
-<div id="saved-year-menu" class="saved-year-menu" role="listbox" aria-label="Available publication years" hidden></div>
-</div>
+<select id="saved-search-year" name="year" aria-describedby="saved-year-status">
+<option value="">Any year</option>
+</select>
+<p class="saved-year-message" id="saved-year-status" role="status" aria-live="polite" hidden></p>
 </div>
 <div class="saved-searches-field">
 <label for="saved-search-name">Search name</label>

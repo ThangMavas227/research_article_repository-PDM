@@ -16,129 +16,73 @@
     const createBtn = $('create-saved-search');
     let isLoading = false;
 
-    // Dropdown choices come from the real Article API, not hardcoded years.
-    const yearBox = $('saved-year-combobox');
-    const yearToggle = $('saved-year-toggle');
-    const yearMenu = $('saved-year-menu');
-    let availableYears = [];
-    let yearsStatus = 'loading';
-    let suppressFocusOpen = false;
+    // Always load real publication years from the Article API (MySQL via backend).
+    // A native <select> avoids custom popup/focus bugs and never hardcodes years.
+    const yearStatus = $('saved-year-status');
+    let yearsLoading = false;
 
-    function closeYearMenu() {
-        yearMenu.hidden = true;
-        yearInput.setAttribute('aria-expanded', 'false');
-        yearToggle.setAttribute('aria-expanded', 'false');
+    function showYearStatus(message = '', kind = 'info') {
+        yearStatus.textContent = message;
+        yearStatus.dataset.kind = kind;
+        yearStatus.hidden = !message;
     }
-
-    function showYearMenu(showAll = false) {
-        const filter = showAll ? '' : yearInput.value.trim();
-        yearMenu.replaceChildren();
-        if (yearsStatus === 'loading') {
-            const note = document.createElement('p');
-            note.className = 'saved-year-message';
-            note.textContent = 'Loading available years...';
-            yearMenu.appendChild(note);
-        } else if (yearsStatus === 'error') {
-            const note = document.createElement('p');
-            note.className = 'saved-year-message';
-            note.textContent = 'Could not load years. You can type a year manually.';
-            yearMenu.appendChild(note);
-        } else {
-            const matches = availableYears.filter(value => !filter || value.includes(filter));
-            if (!matches.length) {
-                const note = document.createElement('p');
-                note.className = 'saved-year-message';
-                note.textContent = 'No matching years. You can type another year.';
-                yearMenu.appendChild(note);
-            }
-            for (const value of matches) {
-                const option = document.createElement('button');
-                option.type = 'button';
-                option.className = 'saved-year-option';
-                option.setAttribute('role', 'option');
-                option.setAttribute('aria-selected', String(yearInput.value === value));
-                option.textContent = value;
-                option.addEventListener('click', () => {
-                    yearInput.value = value;
-                    closeYearMenu();
-                    suppressFocusOpen = true;
-                    yearInput.focus();
-                    suppressFocusOpen = false;
-                });
-                yearMenu.appendChild(option);
-            }
-        }
-        yearMenu.hidden = false;
-        yearInput.setAttribute('aria-expanded', 'true');
-        yearToggle.setAttribute('aria-expanded', 'true');
-    }
-
-    yearToggle.addEventListener('click', () => {
-        if (yearMenu.hidden) showYearMenu(true);
-        else closeYearMenu();
-    });
-    yearInput.addEventListener('focus', () => {
-        if (!suppressFocusOpen) showYearMenu(true);
-    });
-    yearInput.addEventListener('input', () => showYearMenu(false));
-    yearInput.addEventListener('keydown', event => {
-        if (event.key === 'Escape') {
-            closeYearMenu();
-            return;
-        }
-        if (event.key === 'ArrowDown') {
-            event.preventDefault();
-            if (yearMenu.hidden) showYearMenu(true);
-            const firstOption = yearMenu.querySelector('.saved-year-option');
-            firstOption?.focus();
-        }
-    });
-    document.addEventListener('pointerdown', event => {
-        if (!yearBox.contains(event.target)) closeYearMenu();
-    });
-    document.addEventListener('focusin', event => {
-        if (!yearBox.contains(event.target)) closeYearMenu();
-    });
 
     async function loadYearSuggestions() {
-        const apiUrl = window.APP_CONFIG?.API_URL;
-        if (!apiUrl) {
-            yearsStatus = 'error';
-            if (!yearMenu.hidden) showYearMenu(true);
-            return;
-        }
-        const years = new Set();
-        let page = 1;
-        let totalPages = 1;
+        if (yearsLoading) return;
+        yearsLoading = true;
+        yearInput.disabled = true;
+        showYearStatus('Loading publication years…');
+        const previousYear = yearInput.value;
         try {
-            do {
+            const apiUrl = window.APP_CONFIG?.API_URL;
+            if (!apiUrl) throw new Error('Article API URL is not configured.');
+
+            const years = new Set();
+            const pageSize = Math.max(1, Math.min(100,
+                Number(window.APP_CONFIG?.PAGE_SIZE) || 10));
+            let totalPages = 1;
+            for (let page = 1; page <= totalPages; page++) {
                 const url = new URL(apiUrl, window.location.href);
                 url.searchParams.set('page', String(page));
-                url.searchParams.set('size', '100');
+                url.searchParams.set('size', String(pageSize));
                 const response = await fetch(url.toString(), {
+                    method: 'GET',
                     headers: { Accept: 'application/json' }
                 });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                if (!response.ok) throw new Error(`Article API returned HTTP ${response.status}.`);
+
                 const data = await response.json();
-                if (!Array.isArray(data.items) || !Number.isInteger(data.totalPages)) {
-                    throw new Error('Unexpected article response');
+                if (!data || !Array.isArray(data.items) ||
+                    !Number.isInteger(data.totalPages) || data.totalPages < 0) {
+                    throw new Error('Invalid response from the Article API.');
                 }
+                if (page === 1) totalPages = data.totalPages;
                 for (const article of data.items) {
-                    const year = Number(article.year);
-                    if (Number.isInteger(year) && year >= 1000 && year <= 9999) {
-                        years.add(String(year));
+                    const y = Number(article?.year);
+                    if (Number.isInteger(y) && y >= 1 && y <= 9999) {
+                        years.add(y);
                     }
                 }
-                totalPages = data.totalPages;
-                page += 1;
-            } while (page <= totalPages);
-            availableYears = [...years].sort((a, b) => Number(b) - Number(a));
-            yearsStatus = 'ready';
+            }
+
+            const options = [new Option('Any year', '')];
+            for (const year of [...years].sort((a, b) => b - a)) {
+                options.push(new Option(String(year), String(year)));
+            }
+            yearInput.replaceChildren(...options);
+            // Preserve a selected year after Refresh only if it still exists in DB.
+            if ([...years].some(year => String(year) === previousYear)) {
+                yearInput.value = previousYear;
+            }
+            showYearStatus(years.size ? '' : 'No publication years found in the database.');
         } catch (error) {
-            yearsStatus = 'error';
-            console.warn('[Saved Searches] Could not load publication years:', error);
+            // No fake years or browser-only cache: keep any previously loaded choices.
+            showYearStatus('Could not load publication years from the backend. Click Refresh to retry.', 'error');
+            console.warn('[Saved Searches] Failed to load publication years:', error);
+        } finally {
+            yearsLoading = false;
+            yearInput.disabled = false;
         }
-        if (!yearMenu.hidden) showYearMenu(true);
     }
 
     function notify(message, kind = 'info') {
@@ -267,12 +211,11 @@
 
     $('clear-saved-search-form').addEventListener('click', () => {
         form.reset();
-        closeYearMenu();
         notify('');
     });
     refreshBtn.addEventListener('click', async () => {
         notify('');
-        await loadSavedSearches();
+        await Promise.all([loadYearSuggestions(), loadSavedSearches()]);
     });
 
     void loadYearSuggestions();
