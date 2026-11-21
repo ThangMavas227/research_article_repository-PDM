@@ -269,7 +269,7 @@ async function loadPage() {
         $('page-label').textContent = '';
         showState('error', 'Could not load articles',
             err?.name === 'TypeError'
-                ? `Cannot connect to ${CONFIG.API_URL}. Check that Spring Boot is running on port 8080, MySQL is accessible, and CORS allows this page's origin (${window.location.origin}).`
+                ? `Cannot connect to Server`
                 : err.message || 'Something went wrong. Please try again.');
         console.error('[Browse Articles]', err);
     }
