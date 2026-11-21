@@ -13,11 +13,11 @@ All error responses have a single shape: `{ "error": "message" }`. API input/out
 - `GET /api/auth/me` -> `200 { "id": "...", "username": "...", "role": "reader|admin" }`; requires valid token.
 - `POST /api/auth/logout` -> `204`; requires token and invalidates the token.
 - `reader`: public article browse + **create/list/delete their own saved searches**; cannot create/edit/delete articles.
-- `admin`: all of the above (only their **own** saved searches), plus create/edit/delete articles.
-- Article browsing is public; SavedSearch and article-write actions require login. Missing/expired/invalid token -> `401`; trying an admin-only article-write operation as reader -> `403`.
+- `admin`: public article browse plus create/edit/delete articles. Admins have **no** saved searches: every `/api/saved-searches` call as admin returns `403`.
+- Article browsing is public; SavedSearch (reader only) and article-write actions (admin only) require login. Missing/expired/invalid token -> `401`; a reader trying an article write -> `403`; an admin using SavedSearch -> `403`.
 - Demo users in the provided `script.sql`: `admin` / `Admin@123`, `reader1` / `Reader@123`.
 
-**Security rule:** The `UserID` for SavedSearch is obtained exclusively through `auth.requireUser(request).id()` after checking the Bearer token. **Never** accept a `userId` / `UserID` field or URL parameter as the authority for another account.
+**Security rule:** The `UserID` for SavedSearch is obtained exclusively through `auth.requireUser(request).id()` after checking the Bearer token and the `reader` role. **Never** accept a `userId` / `UserID` field or URL parameter as the authority for another account.
 
 ## Article response object (unchanged)
 
@@ -76,9 +76,9 @@ The primary key in the existing MySQL schema is `(UserID, SearchName)`. No datab
 
 | Method and path | Access | Success |
 |---|---|---|
-| `POST /api/saved-searches` | Logged-in reader or admin | `201` with SavedSearch item |
-| `GET /api/saved-searches` | Logged-in reader or admin | `200 { "items": [SavedSearchItem] }` |
-| `DELETE /api/saved-searches/{searchName}` | Logged-in reader or admin | `204` no body |
+| `POST /api/saved-searches` | Logged-in **reader** only | `201` with SavedSearch item |
+| `GET /api/saved-searches` | Logged-in **reader** only | `200 { "items": [SavedSearchItem] }` |
+| `DELETE /api/saved-searches/{searchName}` | Logged-in **reader** only | `204` no body |
 
 ### POST /api/saved-searches
 
@@ -199,7 +199,7 @@ All error bodies: `{ "error": "human-readable message" }`.
 |---|---|
 | `400` | Invalid/missing JSON, invalid `searchName`, invalid filter values/range, invalid article fields, or conflicting `year`/range inputs |
 | `401` | Missing, invalid, expired or logged-out Bearer token; invalid login credentials |
-| `403` | Authenticated reader tries an admin-only article write |
+| `403` | Authenticated reader tries an admin-only article write; authenticated admin calls a SavedSearch endpoint |
 | `404` | Article id not found for PUT/DELETE; SavedSearch name not found **for this account** on DELETE |
 | `409` | Duplicate SavedSearch `(UserID, SearchName)`; duplicate article DOI/start-page uniqueness violation |
 | `500` | Unexpected server/database failure; internal details are logged on the backend, not returned to the frontend |

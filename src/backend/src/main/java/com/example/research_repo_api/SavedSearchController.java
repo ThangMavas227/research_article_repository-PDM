@@ -48,7 +48,7 @@ public class SavedSearchController {
     @Transactional
     public SavedSearchItem create(HttpServletRequest request,
             @RequestBody(required = false) CreateSavedSearchRequest body) {
-        String userId = auth.requireUser(request).id();
+        String userId = auth.requireReader(request).id();
         if (body == null) throw new BadRequestException("request body is required");
         String name = normalizedName(body.searchName());
         if (body.criteria() == null) throw new BadRequestException("criteria is required");
@@ -70,7 +70,7 @@ public class SavedSearchController {
     /** GET: only the searches belonging to the logged-in user. */
     @GetMapping
     public SavedSearchList list(HttpServletRequest request) {
-        String userId = auth.requireUser(request).id();
+        String userId = auth.requireReader(request).id();
         List<SavedSearchItem> items = jdbc.query(SELECT_COLUMNS
                         + " WHERE UserID = ? ORDER BY CreatedDate DESC, SearchName ASC",
                 (rs, row) -> mapItem(rs.getString("SearchName"), rs.getString("Criteria"),
@@ -84,7 +84,7 @@ public class SavedSearchController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Transactional
     public void delete(HttpServletRequest request, @PathVariable String searchName) {
-        String userId = auth.requireUser(request).id();
+        String userId = auth.requireReader(request).id();
         String name = normalizedName(searchName);
         int deleted = jdbc.update("DELETE FROM SavedSearch WHERE UserID = ? AND SearchName = ?", userId, name);
         if (deleted == 0) throw new ApiException(HttpStatus.NOT_FOUND, "saved search not found");

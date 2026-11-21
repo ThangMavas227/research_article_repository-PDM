@@ -633,7 +633,7 @@ INSERT INTO `Contains` (UserID, ListName, ArticleID, AddedDate) VALUES
   ('U010', 'Tuning and advisors', 'AR013', '2026-01-16 01:07:00');
 
 INSERT INTO SavedSearch (UserID, SearchName, Criteria, CreatedDate) VALUES
-  ('U001', 'learned index', '{"keyword": "learned index", "yearFrom": 2018, "yearTo": 2023, "venueType": "C"}', '2026-01-02 10:00:00'),
+  ('U016', 'learned index', '{"keyword": "learned index", "yearFrom": 2018, "yearTo": 2023, "venueType": "C"}', '2026-01-02 10:00:00'),
   ('U002', 'cardinality estimation', '{"keyword": "cardinality", "yearFrom": 2019, "yearTo": 2023}', '2026-02-03 10:03:00'),
   ('U003', 'query optimization', '{"keyword": "query optimization", "yearFrom": 2017, "yearTo": 2023, "venueType": "C"}', '2026-03-04 10:06:00'),
   ('U004', 'entity resolution', '{"keyword": "entity resolution", "yearFrom": 2019, "yearTo": 2023, "venueType": "J"}', '2026-04-05 10:09:00'),

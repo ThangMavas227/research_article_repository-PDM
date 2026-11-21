@@ -72,6 +72,15 @@ public class AuthService {
         return s.user();
     }
 
+    /** 401 when not logged in, 403 when logged in as an admin (saved searches belong to readers). */
+    public SessionUser requireReader(HttpServletRequest request) {
+        SessionUser u = requireUser(request);
+        if (!"reader".equals(u.role())) {
+            throw new ApiException(HttpStatus.FORBIDDEN, "reader role required");
+        }
+        return u;
+    }
+
     /** 401 when not logged in, 403 when logged in but not an admin. */
     public SessionUser requireAdmin(HttpServletRequest request) {
         SessionUser u = requireUser(request);
