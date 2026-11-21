@@ -313,7 +313,6 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 .state-icon { color: var(--a-navy); font-size: 24px; }
 .shimmer { background: #e8e1db; }
 
-/* Article detail / citations. */
 .page-detail .detail-main { width: min(980px,100%); }
 .page-detail .back-btn, .saved-searches-back-link, .back-link { color: var(--a-navy-dark); font-weight: 700; text-decoration: none; }
 .page-detail .back-btn:hover, .saved-searches-back-link:hover, .back-link:hover { text-decoration: underline; }

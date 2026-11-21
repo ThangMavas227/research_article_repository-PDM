@@ -1,6 +1,5 @@
 "use strict";
 
-/* Dashboard: Q3/Q4/Q5 reports from Spring Boot, plus existing year-range chart. */
 const API_URL = window.APP_CONFIG?.API_URL || "http://localhost:8080/api/articles";
 const REPORTS_URL = new URL("/api/reports/", API_URL).toString();
 const API_PAGE_SIZE = 100;
@@ -22,7 +21,6 @@ function makeArticleLink(article) {
   link.href = `articleDetail.html?id=${encodeURIComponent(String(article.id))}`;
   link.textContent = article.title;
 
-  // Keep old behavior for the existing Recent Articles section.
   link.addEventListener("click", () => {
     try {
       const key = window.APP_CONFIG?.SELECTED_ARTICLE_KEY;
@@ -87,7 +85,6 @@ function showYearMessage(text, error = false) {
   parent.appendChild(p);
 }
 
-// Q3: Top cited articles filtered by subject area.
 async function loadQ3() {
   const requestNumber = ++q3RequestNumber;
   const areaId = $("q3-area").value.trim();
@@ -220,8 +217,6 @@ function onYearChange(changed) {
   updateFilteredDashboard();
 }
 
-// Q4 venue options are derived from articles returned by GET /api/articles.
-// BE does not provide a standalone venue-list API in the current contract.
 function populateVenuePicker(articles) {
   const map = new Map();
   for (const article of articles) {
@@ -270,7 +265,6 @@ function updateVenueSummary() {
   setText("q4-summary", `${state.selectedVenueIds.size} venue(s) selected · choose venues`);
 }
 
-// Q4: authors who published in EVERY selected venue.
 async function loadQ4() {
   const requestNumber = ++q4RequestNumber;
   const venueIds = [...state.selectedVenueIds];
@@ -304,7 +298,6 @@ async function loadQ4() {
   }
 }
 
-// Q5: average authors per article for every publication year returned by BE.
 async function loadQ5() {
   $("q5-list").replaceChildren();
   try {
@@ -333,7 +326,6 @@ async function loadQ5() {
   }
 }
 
-// Existing year chart and recent articles are still loaded from /api/articles.
 async function loadArticleStats() {
   $("year-from").disabled = true;
   $("year-to").disabled = true;

@@ -74,7 +74,6 @@
     .saved-searches-button { min-height: 40px; }
 }
 
-/* Publication year options are fetched from the backend, never hardcoded. */
 .saved-searches-field select {
     width: 100%; min-width: 0; min-height: 44px; padding: 11px 12px;
     border: 1px solid #cbd5e1; border-radius: 7px;

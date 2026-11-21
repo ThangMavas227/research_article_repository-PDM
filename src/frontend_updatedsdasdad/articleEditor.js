@@ -525,12 +525,10 @@
   $("articles-tab").addEventListener("click", () => showTab("articles"));
 
   $("add-article-tab").addEventListener("click", () => {
-    // Only reset when opening a new Add form
     if (editingArticleId === null) {
       resetForm({ focus: false });
     }
 
-    // Preserve existing values in Edit mode
     showTab("add");
   });
 
@@ -574,10 +572,8 @@
   $("cancel-article").addEventListener("click", () => {
     const wasEditing = editingArticleId !== null;
 
-    // Clear form and restore Add mode
     resetForm({ focus: !wasEditing });
 
-    // Return to Articles after cancelling Edit
     if (wasEditing) {
       showTab("articles");
     }

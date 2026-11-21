@@ -16,8 +16,6 @@
     const createBtn = $('create-saved-search');
     let isLoading = false;
 
-    // Always load real publication years from the Article API (MySQL via backend).
-    // A native <select> avoids custom popup/focus bugs and never hardcodes years.
     const yearStatus = $('saved-year-status');
     let yearsLoading = false;
 
@@ -70,13 +68,13 @@
                 options.push(new Option(String(year), String(year)));
             }
             yearInput.replaceChildren(...options);
-            // Preserve a selected year after Refresh only if it still exists in DB.
+
             if ([...years].some(year => String(year) === previousYear)) {
                 yearInput.value = previousYear;
             }
             showYearStatus(years.size ? '' : 'No publication years found in the database.');
         } catch (error) {
-            // No fake years or browser-only cache: keep any previously loaded choices.
+
             showYearStatus('Could not load publication years from the backend. Click Refresh to retry.', 'error');
             console.warn('[Saved Searches] Failed to load publication years:', error);
         } finally {
