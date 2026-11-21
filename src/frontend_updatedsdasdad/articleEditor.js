@@ -129,7 +129,6 @@
       empty.textContent = term ? "No matching authors in loaded articles." : "Search authors above, or enter a new author name.";
       parent.appendChild(empty);
     }
-    $("author-selection-status").textContent = `${state.selectedAuthors.length} existing author(s) selected, in selection order.`;
   }
 
   function filtered() {
