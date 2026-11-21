@@ -229,8 +229,8 @@
     if (tab !== "add") {
       $("list-heading").textContent = tab === "articles" ? "Articles" : "Authors appearing in articles";
       $("list-description").textContent = tab === "articles"
-          ? "Articles from MySQL."
-          : "Only authors returned with current articles, not the full Author table.";
+          ? ""
+          : "";
       $("record-search").placeholder = tab === "articles"
           ? "Search article or author..."
           : "Search author name or ID...";
@@ -264,8 +264,6 @@
     state.selectedAuthors = [];
     $("author-search").value = "";
     $("article-form-heading").textContent = "Add Article";
-    document.querySelector(".record-id").textContent =
-        "New record — ID assigned by Backend";
     saveButton.disabled = false;
     saveButton.textContent = "Save New Article";
     renderAuthors();
@@ -298,8 +296,6 @@
     $("article-form-heading").textContent =
         `Edit Article — ${article.id}`;
 
-    document.querySelector(".record-id").textContent =
-        `Article ID: ${article.id}`;
 
     saveButton.disabled = false;
     saveButton.textContent = "Save Changes";
