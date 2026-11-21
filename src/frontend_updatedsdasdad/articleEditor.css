@@ -33,7 +33,13 @@ header nav a[aria-current="page"] { font-weight: 700; text-decoration: underline
 .record-card { padding: 15px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; margin: 0; }
 .record-card h4 { margin: 0 0 8px; color: #1d4ed8; font-size: 16px; line-height: 1.4; overflow-wrap: anywhere; }
 .record-card p { font-size: 13px; margin: 4px 0; color: #4b5563; overflow-wrap: anywhere; }
-.record-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.record-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
 .record-id { color: #6b7280; font-weight: 400; font-size: 12px; }
 .editor-pager { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 18px; font-size: 13px; color: #4b5563; }
 .editor-pager[hidden] { display: none; }

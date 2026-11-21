@@ -180,7 +180,10 @@
           showEditForm(item);
         });
 
-        card.appendChild(editButton);
+        const actions = document.createElement("div");
+        actions.className = "record-actions";
+
+        actions.appendChild(editButton);
 
         const deleteButton = document.createElement("button");
         deleteButton.type = "button";
@@ -188,7 +191,8 @@
         deleteButton.textContent = "Delete";
         deleteButton.setAttribute("aria-label", `Delete article ${item.id}`);
         deleteButton.addEventListener("click", () => deleteArticle(item, deleteButton));
-        card.appendChild(deleteButton);
+        actions.appendChild(deleteButton);
+        card.appendChild(actions);
       } else {
         heading.textContent = item.name;
         card.appendChild(heading);
@@ -260,6 +264,9 @@
 
   function resetForm({ focus = true } = {}) {
     editingArticleId = null;
+    // Restore Add mode labels
+    $("add-article-tab").textContent = "Add Article";
+    $("cancel-article").textContent = "Clear Form";
     $("article-form").reset();
     state.selectedAuthors = [];
     $("author-search").value = "";
@@ -276,6 +283,9 @@
     feedbackElement.hidden = true;
     feedbackElement.className = "feedback";
     editingArticleId = article.id;
+    // Switch labels to Edit mode
+    $("add-article-tab").textContent = "Edit Article";
+    $("cancel-article").textContent = "Cancel Edit";
 
     $("article-title").value = article.title || "";
     $("article-doi").value = article.doi || "";
@@ -514,10 +524,17 @@
   });
 
   $("articles-tab").addEventListener("click", () => showTab("articles"));
+
   $("add-article-tab").addEventListener("click", () => {
+    // Only reset when opening a new Add form
+    if (editingArticleId === null) {
+      resetForm({ focus: false });
+    }
+
+    // Preserve existing values in Edit mode
     showTab("add");
-    resetForm();
   });
+
   $("authors-tab").addEventListener("click", () => showTab("authors"));
 
   const tabs = [$("articles-tab"), $("add-article-tab"), $("authors-tab")];
@@ -554,7 +571,19 @@
   });
 
   $("reload-records").addEventListener("click", load);
-  $("cancel-article").addEventListener("click", () => resetForm());
+
+  $("cancel-article").addEventListener("click", () => {
+    const wasEditing = editingArticleId !== null;
+
+    // Clear form and restore Add mode
+    resetForm({ focus: !wasEditing });
+
+    // Return to Articles after cancelling Edit
+    if (wasEditing) {
+      showTab("articles");
+    }
+  });
+
 
   (async () => {
     try {

@@ -556,7 +556,7 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 <div aria-label="Manage content sections" class="tab-switch" role="tablist">
 <button aria-controls="records-panel" aria-selected="true" class="tab-btn" id="articles-tab" role="tab" tabindex="0" type="button">Articles <span class="tab-count" id="article-count"></span></button>
 <button aria-controls="article-form-panel" aria-selected="false" class="tab-btn" id="add-article-tab" role="tab" tabindex="-1" type="button">Add Article</button>
-<button aria-controls="records-panel" aria-selected="false" class="tab-btn" id="authors-tab" role="tab" tabindex="-1" type="button">Referenced Authors <span class="tab-count" id="author-count"></span></button>
+<button aria-controls="records-panel" aria-selected="false" class="tab-btn" id="authors-tab" role="tab" tabindex="-1" type="button"> Authors <span class="tab-count" id="author-count"></span></button>
 </div>
 <button class="btn btn-secondary" id="reload-records" type="button">Reload page</button>
 </div>
@@ -565,7 +565,7 @@ button:disabled { cursor: not-allowed; opacity: .58; }
 <div class="panel-header">
 <h3 id="list-heading">Articles</h3>
 </div>
-<p class="panel-description" id="list-description">Records fetched from the Backend API.</p>
+<p class="panel-description" id="list-description"></p>
 <label class="field-label" for="record-search">Search</label>
 <input autocomplete="off" class="record-search" id="record-search" placeholder="Search article or author..." type="search"/>
 <div aria-live="polite" class="record-list" id="record-list"></div>
