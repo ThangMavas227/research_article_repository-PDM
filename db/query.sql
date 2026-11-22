@@ -51,23 +51,20 @@ ORDER BY E.PubYear, CitingArticle.Title;
 -- Q3 [JOIN + GROUP BY]: Retrieve the ten most cited articles in a given subject area.
 -- A.Title is the tie-breaker so that articles with equal counts have a fixed order.
 SELECT
-    A.ArticleID,
-    A.Title,
-    SA.Name AS SubjectArea,
-    COUNT(DISTINCT C.CitingArticleID) AS CitationCount
+A.ArticleID,
+A.Title,
+SA.Name AS SubjectArea,
+COUNT(DISTINCT C.CitingArticleID) AS CitationCount
 FROM Article A
 JOIN Classified CL
-    ON A.ArticleID = CL.ArticleID
+ON A.ArticleID = CL.ArticleID
 JOIN SubjectArea SA
-    ON CL.AreaID = SA.AreaID
-JOIN Citation C
-    ON A.ArticleID = C.CitedArticleID
+ON CL.AreaID = SA.AreaID
+LEFT JOIN Citation C
+ON A.ArticleID = C.CitedArticleID
 WHERE SA.AreaID = 'SA001'
 GROUP BY
-    A.ArticleID,
-    A.Title,
-    SA.AreaID,
-    SA.Name
+A.ArticleID, A.Title, SA.AreaID, SA.Name
 ORDER BY CitationCount DESC, A.Title
 LIMIT 10;
 
