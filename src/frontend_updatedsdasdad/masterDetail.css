@@ -40,7 +40,7 @@
 .page-master-detail .md-numeric {font-variant-numeric:tabular-nums;white-space:nowrap}
 .page-master-detail .md-venue {min-width:160px;max-width:270px}
 .page-master-detail .md-empty {padding:27px!important;text-align:center;color:#837b7b!important;font-style:italic}
-.page-master-detail .md-table-footer {border-top:1px solid var(--a-border);padding:14px 25px;display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;color:var(--a-muted);font-size:13px}
+.page-master-detail .md-table-footer {border-top:1px solid var(--a-border);padding:14px 25px;display:flex;justify-content:center;gap:12px;align-items:center;flex-wrap:wrap;color:var(--a-muted);font-size:13px}
 .page-master-detail .md-pagination {display:flex;align-items:center;gap:13px}
 .page-master-detail .md-pagination #page-indicator {font-size:13px;color:#615d68;font-variant-numeric:tabular-nums}
 .page-master-detail .md-flow-label {display:flex;gap:13px;align-items:center;justify-content:center;margin:16px auto;color:#8e8177;font-size:12px;font-weight:700;letter-spacing:.01em}
@@ -70,3 +70,49 @@
 @media (prefers-reduced-motion:reduce) {
   .page-master-detail .md-master-table tbody tr[data-article-id] {transition:none}
 }
+
+.page-master-detail #master-page-summary {
+  display: none;
+}
+
+.page-master-detail .md-table-footer {
+  justify-content: center;
+}
+
+.page-master-detail .md-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.page-master-detail .md-heading-actions #refresh-button {
+  min-height: 39px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font: 700 13px var(--a-sans);
+  cursor: pointer;
+}
+
+@media (min-width: 841px) {
+  .page-master-detail .md-panel-head > .md-search {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 0 0 auto;
+    width: auto;
+    gap: 8px;
+  }
+
+  .page-master-detail .md-search input {
+    flex: 0 0 260px;
+    width: 260px;
+  }
+
+  .page-master-detail .md-search button {
+    flex-shrink: 0;
+  }
+}
+
+

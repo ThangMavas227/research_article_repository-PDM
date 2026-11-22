@@ -1,7 +1,7 @@
 
 [data-app-navigation] { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 24px; }
 [data-app-navigation] a { text-decoration: none; }
-[data-app-navigation] a[aria-current="page"] { font-weight: 700; text-decoration: underline; text-underline-offset: 5px; }
+[data-app-navigation] a[aria-current="page"] { font-weight: 600; text-decoration: underline; text-underline-offset: 5px; }
 [data-app-navigation] .nav-username { font-size: 14px; font-weight: 600; max-width: 220px; overflow-wrap: anywhere; }
 [data-app-navigation] .nav-logout { appearance: none; background: transparent; color: inherit; border: 1px solid currentColor; border-radius: 6px; padding: 5px 11px; cursor: pointer; font: inherit; font-size: 14px; line-height: 1.4; }
 [data-app-navigation] .nav-logout:hover { background: rgba(255,255,255,.15); }

@@ -52,7 +52,7 @@
     const start = state.totalItems ? (state.page - 1) * PAGE_SIZE + 1 : 0;
     const end = state.totalItems ? start + state.articles.length - 1 : 0;
     $("master-page-summary").textContent = state.totalItems
-      ? `Showing ${start}–${end} of ${state.totalItems} articles`
+      ? `Showing ${start}–${end} articles`
       : "0 articles";
     $("article-total").textContent = String(state.totalItems);
     $("page-indicator").textContent = `Page ${state.totalPages ? state.page : 1} / ${pages}`;
