@@ -38,7 +38,7 @@ public class ReportController {
 
     public record YearAverage(int year, long articles, long totalAuthors, double averageAuthorsPerArticle) {}
 
-    /** Q3. Articles with no citation are not listed (they cannot be among the most cited). */
+    /** Q3, same SQL as db/query.sql. LEFT JOIN: articles that were never cited are listed too, with citationCount 0. */
     @GetMapping("/top-cited")
     public List<TopCitedItem> topCited(@RequestParam(required = false) String areaId) {
         if (areaId == null || areaId.isBlank()) throw new BadRequestException("areaId is required");
@@ -52,7 +52,7 @@ public class ReportController {
                         + " FROM Article A"
                         + " JOIN Classified CL ON A.ArticleID = CL.ArticleID"
                         + " JOIN SubjectArea SA ON CL.AreaID = SA.AreaID"
-                        + " JOIN Citation C ON A.ArticleID = C.CitedArticleID"
+                        + " LEFT JOIN Citation C ON A.ArticleID = C.CitedArticleID"
                         + " WHERE SA.AreaID = ?"
                         + " GROUP BY A.ArticleID, A.Title, SA.AreaID, SA.Name"
                         + " ORDER BY CitationCount DESC, A.Title LIMIT 10", id);

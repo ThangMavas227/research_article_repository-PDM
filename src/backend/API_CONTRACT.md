@@ -163,7 +163,7 @@ Public, read-only, no token needed. The SQL is the one in `db/query.sql`; all va
 
 | Method and path | Query | Success |
 |---|---|---|
-| `GET /api/reports/top-cited?areaId=SA001` | Q3: ten most cited articles of a subject area | `200 [ { "id", "title", "subjectArea", "citationCount" } ]`, most cited first (ties by title); articles never cited are not listed |
+| `GET /api/reports/top-cited?areaId=SA001` | Q3: ten most cited articles of a subject area | `200 [ { "id", "title", "subjectArea", "citationCount" } ]`, most cited first (ties by title); articles that were never cited are also listed, with `citationCount` 0 |
 | `GET /api/reports/authors-all-venues?venueIds=V002,V007` | Q4: authors who published in **every** listed venue | `200 [ { "id", "name" } ]` ordered by name; `venueIds` is a comma-separated list or the parameter repeated, 1 to 20 venues |
 | `GET /api/reports/average-authors-by-year` | Q5: average number of authors per article, per year | `200 [ { "year", "articles", "totalAuthors", "averageAuthorsPerArticle" } ]` ordered by year |
 
