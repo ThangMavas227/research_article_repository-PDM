@@ -1,0 +1,285 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Article–Author Master–Detail | Research Article Repository</title>
+
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="navigation.css">
+  <link rel="stylesheet" href="masterDetail.css">
+
+  <script defer src="config.js"></script>
+  <script defer src="navigation.js"></script>
+  <script defer src="masterDetail.js"></script>
+</head>
+
+<body class="page-master-detail">
+
+<header class="site-header">
+  <a
+          aria-label="Research Article Repository – home"
+          class="site-brand"
+          href="index.html"
+  >
+    <svg
+            aria-hidden="true"
+            class="site-book-icon"
+            fill="none"
+            height="45"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2.1"
+            viewBox="0 0 48 48"
+            width="45"
+    >
+      <path d="M24 12c-6-4.4-13-5.2-19-3.2v27c6-2 13-1.2 19 3.1V12Z"></path>
+      <path d="M24 12c6-4.4 13-5.2 19-3.2v27c-6-2-13-1.2-19 3.1V12Z"></path>
+      <path d="M24 13v27"></path>
+    </svg>
+
+    <span class="site-brand-name">
+        Research Article Repository
+      </span>
+  </a>
+
+  <nav aria-label="Main navigation" data-app-navigation></nav>
+</header>
+
+<div
+        data-navigation-notice
+        hidden
+        role="status"
+        aria-live="polite"
+></div>
+
+<main class="md-page">
+
+  <!-- PAGE HEADING -->
+  <div class="md-page-heading">
+    <div>
+      <p class="md-eyebrow">Research Article Repository</p>
+      <h1>Master–Detail</h1>
+    </div>
+
+    <span class="md-relationship-label">
+        Articles <span aria-hidden="true">→</span> Authors
+      </span>
+  </div>
+
+  <section class="md-panel" aria-labelledby="master-heading">
+
+
+    <div class="md-panel-head">
+      <div>
+        <p class="md-section-index">01 · LIST ALL ARTICLES</p>
+
+        <div class="md-heading-actions">
+
+          <h2 id="master-heading">
+            Articles
+            <span class="md-counter" id="article-total">0</span>
+          </h2>
+
+          <button
+                  class="md-secondary-button"
+                  id="refresh-button"
+                  type="button"
+                  title="Reload current records from Backend"
+          >
+            Reload
+          </button>
+
+        </div>
+      </div>
+
+      <!-- RIGHT: SEARCH + CLEAR -->
+      <form
+              class="md-search"
+              id="article-search-form"
+              role="search"
+      >
+        <label
+                class="md-visually-hidden"
+                for="article-search"
+        >
+          Search article title or author
+        </label>
+
+        <input
+                id="article-search"
+                type="search"
+                maxlength="255"
+                placeholder="Search title or author..."
+                autocomplete="off"
+        >
+
+        <button
+                class="md-primary-button"
+                id="search-button"
+                type="submit"
+        >
+          Search
+        </button>
+
+        <button
+                class="md-secondary-button"
+                id="clear-button"
+                type="button"
+        >
+          Clear
+        </button>
+      </form>
+
+    </div>
+    <p
+            class="md-error"
+            id="request-error"
+            role="alert"
+            hidden
+    ></p>
+
+    <div class="md-table-scroll">
+
+      <table
+              class="md-data-table md-master-table"
+              id="articles-table"
+              role="grid"
+              aria-label="Articles. Select a row to view its authors"
+      >
+        <thead>
+        <tr>
+          <th scope="col">Article ID</th>
+          <th scope="col">Title</th>
+          <th scope="col">Year</th>
+          <th scope="col">Venue</th>
+          <th scope="col">Authors</th>
+        </tr>
+        </thead>
+
+        <tbody id="articles-body">
+        <tr>
+          <td class="md-empty" colspan="5">
+            Loading articles from Backend...
+          </td>
+        </tr>
+        </tbody>
+      </table>
+
+    </div>
+
+    <div class="md-table-footer">
+
+        <span
+                id="master-page-summary"
+                aria-live="polite"
+        >
+          Loading articles...
+        </span>
+
+      <div class="md-pagination" aria-label="Article pagination">
+
+        <button
+                id="previous-button"
+                class="md-secondary-button"
+                type="button"
+                disabled
+        >
+          Previous
+        </button>
+
+        <span id="page-indicator">Page 1 / 1</span>
+
+        <button
+                id="next-button"
+                class="md-secondary-button"
+                type="button"
+                disabled
+        >
+          Next
+        </button>
+
+      </div>
+    </div>
+
+  </section>
+
+
+  <div class="md-flow-label" aria-hidden="true">
+    <span class="md-flow-line"></span>
+    <span class="md-flow-icon">↓</span>
+    <span class="md-flow-text">Selected Article Details</span>
+    <span class="md-flow-line"></span>
+  </div>
+
+
+  <!-- DETAIL GRID -->
+  <section class="md-panel" aria-labelledby="detail-heading">
+
+    <div class="md-panel-head md-detail-head">
+
+      <div>
+        <p class="md-section-index">02 · DETAIL ARTICLE</p>
+
+        <h2 id="detail-heading">
+          Authors
+          <span class="md-counter" id="author-total">0</span>
+        </h2>
+
+        <p
+                class="md-selection-summary"
+                id="selected-article-summary"
+                aria-live="polite"
+        >
+          Select an article in the upper grid.
+        </p>
+      </div>
+
+      <a
+              class="md-detail-link"
+              id="open-article-link"
+              hidden
+      >
+        View full article
+      </a>
+
+    </div>
+
+
+    <!-- AUTHORS TABLE -->
+    <div class="md-table-scroll">
+
+      <table
+              class="md-data-table"
+              id="authors-table"
+              role="grid"
+              aria-label="Authors belonging to the selected article"
+      >
+        <thead>
+        <tr>
+          <th scope="col">Position</th>
+          <th scope="col">Author ID</th>
+          <th scope="col">Author name</th>
+        </tr>
+        </thead>
+
+        <tbody id="authors-body">
+        <tr>
+          <td class="md-empty" colspan="3">
+            Select an article in the upper grid.
+          </td>
+        </tr>
+        </tbody>
+      </table>
+
+    </div>
+
+  </section>
+
+</main>
+
+</body>
+</html>
