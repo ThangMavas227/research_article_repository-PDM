@@ -83,6 +83,7 @@
 
       append("Browse Articles", ROOT, ROOT);
       append("Dashboard", "dashboard.html", "dashboard.html");
+      append("Master–Detail", "masterDetail.html", "masterDetail.html");
       if (role === "reader") {
         append("Saved Searches", READER_SAVED, READER_SAVED);
       }
